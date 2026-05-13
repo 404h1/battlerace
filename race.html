@@ -163,56 +163,132 @@
         plane.rotation.x = -Math.PI / 2;
         scene.add(plane);
 
-        // 사이버트럭 — 스테인리스 실버
-        const silverMat = new THREE.MeshLambertMaterial({ color: 0xC0C8D0 });
-        const darkMat   = new THREE.MeshLambertMaterial({ color: 0x1a1a2e });
-        const glassMat  = new THREE.MeshLambertMaterial({ color: 0x4a6fa5, transparent: true, opacity: 0.7 });
+        function buildCybertruck() {
+            const g = new THREE.Group();
+            const silver = new THREE.MeshLambertMaterial({ color: 0xA8B8C4 });
+            const dark   = new THREE.MeshLambertMaterial({ color: 0x111111 });
+            const glass  = new THREE.MeshLambertMaterial({ color: 0x1a3a5a, transparent: true, opacity: 0.85 });
+            const white  = new THREE.MeshLambertMaterial({ color: 0xffffff });
+            const red    = new THREE.MeshLambertMaterial({ color: 0xff2200 });
 
-        const car = new THREE.Group();
+            const add = (geo, mat, x, y, z, rx=0) => {
+                const m = new THREE.Mesh(geo, mat);
+                m.position.set(x, y, z);
+                m.rotation.x = rx;
+                g.add(m);
+            };
 
-        // 차체 하단 (넓고 낮은 박스)
-        const body = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.55, 4.4), silverMat);
-        body.position.y = 0.35;
-        car.add(body);
+            add(new THREE.BoxGeometry(2, 0.3, 4),           silver, 0, 0.15,  0);
+            add(new THREE.BoxGeometry(1.9, 0.05, 1.9),      silver, 0, 0.54, -1.05, 0.26);
+            add(new THREE.BoxGeometry(1.85, 0.58, 1.65),    silver, 0, 0.89, -0.7);
+            add(new THREE.BoxGeometry(1.58, 0.46, 0.06),    glass,  0, 0.87, -1.54, 0.1);
+            add(new THREE.BoxGeometry(0.07, 0.27, 1.55),    silver, -0.96, 0.44, 1.1);
+            add(new THREE.BoxGeometry(0.07, 0.27, 1.55),    silver,  0.96, 0.44, 1.1);
+            add(new THREE.BoxGeometry(1.85, 0.27, 0.07),    silver, 0, 0.44, 1.92);
+            add(new THREE.BoxGeometry(1.75, 0.045, 0.045),  white,  0, 0.4, -2.01);
+            add(new THREE.BoxGeometry(1.75, 0.045, 0.045),  red,    0, 0.4,  1.97);
 
-        // 짐칸 (뒤쪽 낮은 박스)
-        const bed = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.45, 1.6), silverMat);
-        bed.position.set(0, 0.85, 1.3);
-        car.add(bed);
+            const wGeo = new THREE.CylinderGeometry(0.32, 0.32, 0.2, 16);
+            [[-1.1,-1.3],[1.1,-1.3],[-1.1,1.3],[1.1,1.3]].forEach(([x,z]) => {
+                const w = new THREE.Mesh(wGeo, dark);
+                w.rotation.z = Math.PI / 2;
+                w.position.set(x, 0.1, z);
+                g.add(w);
+            });
 
-        // 캐빈 루프 (앞쪽 — 사다리꼴 느낌을 BoxGeometry로 근사)
-        const cabin = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.6, 2.4), silverMat);
-        cabin.position.set(0, 1.1, -0.5);
-        car.add(cabin);
+            g.position.y = 0.33;
+            return g;
+        }
 
-        // 앞 경사면 (얇은 박스 기울여서)
-        const hood = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.08, 1.2), silverMat);
-        hood.position.set(0, 0.82, -2.0);
-        hood.rotation.x = Math.PI * 0.13;
-        car.add(hood);
+        function buildBarbieCar() {
+            const g = new THREE.Group();
+            const pink      = new THREE.MeshLambertMaterial({ color: 0xFF69B4 });
+            const darkPink  = new THREE.MeshLambertMaterial({ color: 0xC2185B });
+            const chrome    = new THREE.MeshLambertMaterial({ color: 0xE8E8E8 });
+            const dark      = new THREE.MeshLambertMaterial({ color: 0x111111 });
+            const interior  = new THREE.MeshLambertMaterial({ color: 0xFF1493 });
+            const red       = new THREE.MeshLambertMaterial({ color: 0xff2200 });
+            const white     = new THREE.MeshLambertMaterial({ color: 0xffffff });
 
-        // 윈드실드 (앞유리 — 기울어진 얇은 판)
-        const windshield = new THREE.Mesh(new THREE.BoxGeometry(1.85, 0.08, 0.9), glassMat);
-        windshield.position.set(0, 1.22, -1.55);
-        windshield.rotation.x = -Math.PI * 0.32;
-        car.add(windshield);
+            // 차체 메인
+            const body = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.38, 4.2), pink);
+            body.position.y = 0.19;
+            g.add(body);
 
-        // 바퀴 4개
-        const wheelGeo = new THREE.CylinderGeometry(0.38, 0.38, 0.25, 16);
-        const wheelMat = new THREE.MeshLambertMaterial({ color: 0x111111 });
-        [[-1.2, -1.5], [1.2, -1.5], [-1.2, 1.4], [1.2, 1.4]].forEach(([x, z]) => {
-            const wheel = new THREE.Mesh(wheelGeo, wheelMat);
-            wheel.rotation.z = Math.PI / 2;
-            wheel.position.set(x, 0.18, z);
-            car.add(wheel);
-        });
+            // 앞 범퍼 / 후드 (살짝 낮게)
+            const frontHood = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.28, 1.4), pink);
+            frontHood.position.set(0, 0.45, -1.5);
+            g.add(frontHood);
 
-        // 헤드라이트 (앞 LED 라인)
-        const headlight = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.06, 0.06), new THREE.MeshLambertMaterial({ color: 0xffffff }));
-        headlight.position.set(0, 0.75, -2.22);
-        car.add(headlight);
+            // 뒤 트렁크
+            const trunk = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.28, 0.8), pink);
+            trunk.position.set(0, 0.45, 1.65);
+            g.add(trunk);
 
-        car.position.y = 0.4;
+            // 실내 (오픈탑이라 안이 보임)
+            const cockpit = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.2, 1.8), interior);
+            cockpit.position.set(0, 0.48, -0.1);
+            g.add(cockpit);
+
+            // 앞유리 프레임만 (컨버터블)
+            const wsFrame = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.35, 0.07), chrome);
+            wsFrame.rotation.x = -0.2;
+            wsFrame.position.set(0, 0.67, -0.95);
+            g.add(wsFrame);
+
+            // 테일핀 왼쪽
+            const finL = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.35, 0.6), pink);
+            finL.position.set(-1.05, 0.62, 1.6);
+            g.add(finL);
+            // 테일핀 오른쪽
+            const finR = finL.clone();
+            finR.position.x = 1.05;
+            g.add(finR);
+
+            // 크롬 범퍼 앞
+            const bumperF = new THREE.Mesh(new THREE.BoxGeometry(2.15, 0.12, 0.08), chrome);
+            bumperF.position.set(0, 0.22, -2.12);
+            g.add(bumperF);
+
+            // 크롬 범퍼 뒤
+            const bumperR = new THREE.Mesh(new THREE.BoxGeometry(2.15, 0.12, 0.08), chrome);
+            bumperR.position.set(0, 0.22, 2.12);
+            g.add(bumperR);
+
+            // 헤드라이트 (동그란 느낌 - 작은 박스 2개)
+            [[-0.6], [0.6]].forEach(([x]) => {
+                const hl = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.18, 0.06), white);
+                hl.position.set(x, 0.38, -2.12);
+                g.add(hl);
+            });
+
+            // 테일라이트
+            [[-0.65], [0.65]].forEach(([x]) => {
+                const tl = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.14, 0.06), red);
+                tl.position.set(x, 0.38, 2.12);
+                g.add(tl);
+            });
+
+            // 바퀴 (크롬 휠캡)
+            const wGeo  = new THREE.CylinderGeometry(0.34, 0.34, 0.22, 16);
+            const hubGeo = new THREE.CylinderGeometry(0.18, 0.18, 0.24, 16);
+            [[-1.15,-1.35],[1.15,-1.35],[-1.15,1.35],[1.15,1.35]].forEach(([x,z]) => {
+                const w = new THREE.Mesh(wGeo, dark);
+                w.rotation.z = Math.PI / 2;
+                w.position.set(x, 0.1, z);
+                g.add(w);
+                const hub = new THREE.Mesh(hubGeo, chrome);
+                hub.rotation.z = Math.PI / 2;
+                hub.position.set(x, 0.1, z);
+                g.add(hub);
+            });
+
+            g.position.y = 0.33;
+            return g;
+        }
+
+        const carBuilders = [buildCybertruck, buildBarbieCar];
+        const car = carBuilders[Math.floor(Math.random() * carBuilders.length)]();
         scene.add(car);
 
         let obstacles = [];

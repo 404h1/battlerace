@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>3D 무한 질주 대결</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #87CEEB; font-family: 'Arial', sans-serif; }
+        #ui-layer { position: absolute; top: 10px; left: 10px; color: white; text-shadow: 2px 2px 4px #000; z-index: 10; }
+        #status-msg { color: #ffd700; font-weight: bold; display: none; margin-top: 10px; }
+
+        #game-over {
+            display: none;
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center; color: white;
+            background: rgba(0,0,0,0.88);
+            padding: 30px 40px; border-radius: 12px; z-index: 20;
+            min-width: 340px; max-height: 90vh; overflow-y: auto;
+        }
+        #game-over h1 { color: #ff4757; margin: 0 0 4px; }
+
+        #name-row {
+            display: flex; justify-content: center; align-items: center; gap: 8px; margin: 12px 0 6px;
+        }
+        #name-input {
+            padding: 8px 12px; font-size: 15px; border-radius: 5px;
+            border: none; width: 160px; text-align: center;
+        }
+        #submit-btn {
+            padding: 8px 16px; font-size: 15px; cursor: pointer;
+            background-color: #ff4757; color: white;
+            border: none; border-radius: 5px;
+        }
+        #submit-btn:disabled { background-color: #888; cursor: not-allowed; }
+        #submit-msg { font-size: 13px; color: #aaa; min-height: 18px; }
+
+        #ranking-section { margin-top: 16px; text-align: left; }
+        #ranking-section h3 { text-align: center; color: #ffd700; margin: 0 0 8px; }
+        #ranking-list { list-style: none; padding: 0; margin: 0; }
+        #ranking-list li {
+            display: flex; justify-content: space-between;
+            padding: 5px 8px; border-radius: 4px; font-size: 14px;
+        }
+        #ranking-list li:nth-child(odd) { background: rgba(255,255,255,0.06); }
+        #ranking-list li.my-score { color: #ffd700; font-weight: bold; background: rgba(255,215,0,0.1); }
+        .rank-pos { width: 28px; }
+        .rank-name { flex: 1; margin: 0 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .rank-score { width: 60px; text-align: right; }
+
+        #retry-btn {
+            padding: 10px 24px; font-size: 15px; cursor: pointer;
+            background-color: #2ed573; color: white;
+            border: none; border-radius: 5px; margin-top: 16px;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+    <div id="ui-layer">
+        <h2>점수: <span id="score">0</span></h2>
+        <p>조작: ← 왼쪽 / 오른쪽 →</p>
+        <div id="status-msg">⚠️ 조작 반전 상태! ⚠️</div>
+    </div>
+
+    <div id="game-over">
+        <h1>충돌!</h1>
+        <h2 style="margin:4px 0">내 점수: <span id="final-score">0</span></h2>
+
+        <div id="name-row">
+            <input id="name-input" type="text" maxlength="20" placeholder="닉네임" />
+            <button id="submit-btn" onclick="submitScore()">등록</button>
+        </div>
+        <div id="submit-msg"></div>
+
+        <div id="ranking-section">
+            <h3>🏆 글로벌 랭킹 TOP 10</h3>
+            <ul id="ranking-list"><li style="text-align:center; color:#aaa;">불러오는 중...</li></ul>
+        </div>
+
+        <button id="retry-btn" onclick="location.reload()">다시 도전하기</button>
+    </div>
+
+    <script>
+        // 랜덤 닉네임 생성
+        const adjectives = ['빠른', '느린', '용감한', '겁쟁이', '졸린', '배고픈', '신나는', '멈출수없는', '터보', '무적의'];
+        const nouns = ['거북이', '치타', '달팽이', '레이서', '드라이버', '번개', '로켓', '바람', '고양이', '판다'];
+        function randomNickname() {
+            const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+            const noun = nouns[Math.floor(Math.random() * nouns.length)];
+            return adj + noun;
+        }
+        document.getElementById('name-input').value = randomNickname();
+
+        // Three.js 씬 설정
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.Fog(0x87CEEB, 10, 50);
+
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 5, 10);
+        camera.lookAt(0, 0, 0);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        const light = new THREE.DirectionalLight(0xffffff, 1);
+        light.position.set(5, 10, 5);
+        scene.add(light);
+        scene.add(new THREE.AmbientLight(0x404040));
+
+        const planeGeo = new THREE.PlaneGeometry(20, 1000);
+        const planeMat = new THREE.MeshLambertMaterial({ color: 0x555555 });
+        const plane = new THREE.Mesh(planeGeo, planeMat);
+        plane.rotation.x = -Math.PI / 2;
+        scene.add(plane);
+
+        const carGeo = new THREE.BoxGeometry(2, 1, 4);
+        const carMat = new THREE.MeshLambertMaterial({ color: 0x007bff });
+        const car = new THREE.Mesh(carGeo, carMat);
+        car.position.y = 0.5;
+        scene.add(car);
+
+        let obstacles = [];
+        let score = 0;
+        let speed = 0.3;
+        let isGameOver = false;
+        let isConfused = false;
+        let finalScore = 0;
+        let scoreSubmitted = false;
+
+        const keys = { ArrowLeft: false, ArrowRight: false };
+        document.addEventListener('keydown', (e) => { if (keys.hasOwnProperty(e.key)) keys[e.key] = true; });
+        document.addEventListener('keyup', (e) => { if (keys.hasOwnProperty(e.key)) keys[e.key] = false; });
+
+        function createObstacle() {
+            if (isGameOver) return;
+
+            const obsGeo = new THREE.BoxGeometry(2, 1, 2);
+            const obstacle = new THREE.Mesh(obsGeo, new THREE.MeshLambertMaterial({ color: 0xff4757 }));
+
+            const rand = Math.random();
+            if (rand < 0.15) {
+                obstacle.material.color.setHex(0xffd700);
+                obstacle.userData = { type: 'coin' };
+            } else if (rand < 0.35) {
+                obstacle.material.color.setHex(0x800080);
+                obstacle.userData = { type: 'guided' };
+            } else {
+                obstacle.userData = { type: 'normal' };
+            }
+
+            const lanes = [-4, 0, 4];
+            obstacle.position.x = lanes[Math.floor(Math.random() * lanes.length)];
+            obstacle.position.y = 0.5;
+            obstacle.position.z = -60;
+            scene.add(obstacle);
+            obstacles.push(obstacle);
+
+            setTimeout(createObstacle, Math.random() * 800 + 400);
+        }
+
+        createObstacle();
+
+        function animate() {
+            if (isGameOver) return;
+            requestAnimationFrame(animate);
+
+            let moveDirection = 0;
+            if (keys.ArrowLeft) moveDirection = -1;
+            if (keys.ArrowRight) moveDirection = 1;
+            if (isConfused) moveDirection *= -1;
+
+            car.position.x += moveDirection * 0.2;
+            if (car.position.x < -4) car.position.x = -4;
+            if (car.position.x > 4) car.position.x = 4;
+
+            score += 1;
+            document.getElementById('score').innerText = Math.floor(score / 10);
+            speed += 0.0001;
+
+            for (let i = 0; i < obstacles.length; i++) {
+                const obs = obstacles[i];
+                obs.position.z += speed;
+
+                if (obs.userData.type === 'guided') {
+                    obs.position.x += (car.position.x - obs.position.x) * 0.015;
+                }
+
+                if (Math.abs(car.position.x - obs.position.x) < 2 && Math.abs(car.position.z - obs.position.z) < 3) {
+                    if (obs.userData.type === 'coin') {
+                        scene.remove(obs);
+                        obstacles.splice(i, 1);
+                        i--;
+                        isConfused = true;
+                        document.getElementById('status-msg').style.display = 'block';
+                        setTimeout(() => {
+                            isConfused = false;
+                            document.getElementById('status-msg').style.display = 'none';
+                        }, 3000);
+                        continue;
+                    } else {
+                        triggerGameOver();
+                        return;
+                    }
+                }
+
+                if (obs.position.z > 10) {
+                    scene.remove(obs);
+                    obstacles.splice(i, 1);
+                    i--;
+                }
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        function triggerGameOver() {
+            isGameOver = true;
+            finalScore = Math.floor(score / 10);
+            document.getElementById('final-score').innerText = finalScore;
+            document.getElementById('game-over').style.display = 'block';
+            loadRanking();
+        }
+
+        async function loadRanking(highlightName = null) {
+            const list = document.getElementById('ranking-list');
+            try {
+                const res = await fetch('/api/scores');
+                const data = await res.json();
+
+                if (!data.length) {
+                    list.innerHTML = '<li style="text-align:center;color:#aaa;">아직 기록이 없어요!</li>';
+                    return;
+                }
+
+                list.innerHTML = data.map((entry, i) => {
+                    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`;
+                    const isMe = highlightName && entry.name === highlightName && entry.score === finalScore;
+                    return `<li class="${isMe ? 'my-score' : ''}">
+                        <span class="rank-pos">${medal}</span>
+                        <span class="rank-name">${entry.name}</span>
+                        <span class="rank-score">${entry.score.toLocaleString()}</span>
+                    </li>`;
+                }).join('');
+            } catch (e) {
+                list.innerHTML = '<li style="text-align:center;color:#aaa;">랭킹을 불러올 수 없어요.</li>';
+            }
+        }
+
+        async function submitScore() {
+            if (scoreSubmitted) return;
+            const btn = document.getElementById('submit-btn');
+            const msg = document.getElementById('submit-msg');
+            const name = document.getElementById('name-input').value.trim();
+
+            if (!name) {
+                document.getElementById('name-input').focus();
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = '등록 중...';
+            msg.innerText = '';
+
+            try {
+                const res = await fetch('/api/scores', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, score: finalScore })
+                });
+
+                if (!res.ok) {
+                    const err = await res.json();
+                    msg.innerText = err.error || '오류가 발생했습니다.';
+                    btn.disabled = false;
+                    btn.innerText = '등록';
+                    return;
+                }
+
+                scoreSubmitted = true;
+                btn.innerText = '등록 완료 ✓';
+                msg.innerText = `${name}으로 등록됐어요!`;
+                await loadRanking(name);
+            } catch (e) {
+                msg.innerText = '서버에 연결할 수 없습니다.';
+                btn.disabled = false;
+                btn.innerText = '등록';
+            }
+        }
+
+        document.getElementById('name-input').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') submitScore();
+        });
+
+        window.addEventListener('resize', () => {
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+        });
+    </script>
+</body>
+</html>

@@ -165,11 +165,11 @@
 
         function buildCybertruck() {
             const g = new THREE.Group();
-            const silver = new THREE.MeshLambertMaterial({ color: 0xA8B8C4 });
+            const silver = new THREE.MeshLambertMaterial({ color: 0x7A8A92 });
             const dark   = new THREE.MeshLambertMaterial({ color: 0x111111 });
             const glass  = new THREE.MeshLambertMaterial({ color: 0x1a3a5a, transparent: true, opacity: 0.85 });
             const white  = new THREE.MeshLambertMaterial({ color: 0xffffff });
-            const red    = new THREE.MeshLambertMaterial({ color: 0xff2200 });
+            const red    = new THREE.MeshLambertMaterial({ color: 0x111111 });
 
             const add = (geo, mat, x, y, z, rx=0) => {
                 const m = new THREE.Mesh(geo, mat);

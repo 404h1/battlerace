@@ -177,6 +177,13 @@
         let isConfused = false;
         let finalScore = 0;
         let scoreSubmitted = false;
+        let sessionId = null;
+
+        // 게임 시작 시 세션 발급
+        fetch('/api/session', { method: 'POST' })
+            .then(r => r.json())
+            .then(d => { sessionId = d.sessionId; })
+            .catch(() => {});
 
         // 키보드 조작
         const keys = { ArrowLeft: false, ArrowRight: false };
@@ -339,7 +346,7 @@
                 const res = await fetch('/api/scores', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, score: finalScore })
+                    body: JSON.stringify({ name, score: finalScore, sessionId })
                 });
                 const result = await res.json();
 

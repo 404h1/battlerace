@@ -32,14 +32,36 @@ app.get('/api/scores', async (req, res) => {
   res.json(data);
 });
 
+// 세션 관리 (시작 시간 기록)
+const sessions = new Map();
+
+app.post('/api/session', (req, res) => {
+  const id = Math.random().toString(36).slice(2);
+  sessions.set(id, Date.now());
+  // 오래된 세션 정리
+  if (sessions.size > 10000) {
+    const cutoff = Date.now() - 1000 * 60 * 60;
+    for (const [k, v] of sessions) { if (v < cutoff) sessions.delete(k); }
+  }
+  res.json({ sessionId: id });
+});
+
 // 점수 저장 (개인 최고 점수만 업데이트)
 app.post('/api/scores', async (req, res) => {
-  const { name, score } = req.body;
+  const { name, score, sessionId } = req.body;
 
   if (!name || typeof name !== 'string' || name.trim().length === 0)
     return res.status(400).json({ error: '이름을 입력해주세요.' });
   if (typeof score !== 'number' || score < 0 || score > 100000)
     return res.status(400).json({ error: '유효하지 않은 점수입니다.' });
+
+  // 시간 기반 검증: 60fps 기준 초당 최대 6점
+  const startTime = sessions.get(sessionId);
+  if (!startTime) return res.status(400).json({ error: '유효하지 않은 세션입니다.' });
+  const elapsedSec = (Date.now() - startTime) / 1000;
+  const maxPossible = Math.floor(elapsedSec * 6 * 1.15); // 15% 여유
+  sessions.delete(sessionId);
+  if (score > maxPossible) return res.status(400).json({ error: '유효하지 않은 점수입니다.' });
 
   const cleanName = name.trim().slice(0, 20);
   const cleanScore = Math.floor(score);

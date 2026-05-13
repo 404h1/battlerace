@@ -90,7 +90,12 @@
             const noun = nouns[Math.floor(Math.random() * nouns.length)];
             return adj + noun;
         }
-        document.getElementById('name-input').value = randomNickname();
+        const savedName = localStorage.getItem('race-nickname') || randomNickname();
+        document.getElementById('name-input').value = savedName;
+
+        document.getElementById('name-input').addEventListener('input', (e) => {
+            localStorage.setItem('race-nickname', e.target.value);
+        });
 
         // Three.js 씬 설정
         const scene = new THREE.Scene();

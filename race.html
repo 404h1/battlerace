@@ -90,7 +90,11 @@
             const noun = nouns[Math.floor(Math.random() * nouns.length)];
             return adj + noun;
         }
-        const savedName = localStorage.getItem('race-nickname') || randomNickname();
+        let savedName = localStorage.getItem('race-nickname');
+        if (!savedName) {
+            savedName = randomNickname();
+            localStorage.setItem('race-nickname', savedName);
+        }
         document.getElementById('name-input').value = savedName;
 
         document.getElementById('name-input').addEventListener('input', (e) => {

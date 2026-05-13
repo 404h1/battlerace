@@ -287,7 +287,153 @@
             return g;
         }
 
-        const carBuilders = [buildCybertruck, buildBarbieCar];
+        function buildCatTruck() {
+            const g = new THREE.Group();
+            const bodyMat  = new THREE.MeshLambertMaterial({ color: 0x8899AA });
+            const dark     = new THREE.MeshLambertMaterial({ color: 0x111111 });
+            const glass    = new THREE.MeshLambertMaterial({ color: 0x4488BB, transparent: true, opacity: 0.7 });
+            const white    = new THREE.MeshLambertMaterial({ color: 0xffffff });
+            const rubber   = new THREE.MeshLambertMaterial({ color: 0x333333 });
+
+            // 박스형 바디 (높이 줄임)
+            const body = new THREE.Mesh(new THREE.BoxGeometry(2, 0.82, 3.8), bodyMat);
+            body.position.y = 0.41;
+            g.add(body);
+
+            // 앞유리
+            const ws = new THREE.Mesh(new THREE.BoxGeometry(1.72, 0.42, 0.07), glass);
+            ws.position.set(0, 0.68, -1.83);
+            g.add(ws);
+
+            // 뒷유리
+            const rw = new THREE.Mesh(new THREE.BoxGeometry(1.72, 0.35, 0.07), glass);
+            rw.position.set(0, 0.65, 1.83);
+            g.add(rw);
+
+            // 사이드 윈도우
+            [-1.01, 1.01].forEach(x => {
+                const sw = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.32, 1.1), glass);
+                sw.position.set(x, 0.68, -0.3);
+                g.add(sw);
+            });
+
+            // 헤드라이트
+            const accent = new THREE.MeshLambertMaterial({ color: 0xFF6B00 });
+            [[-0.55], [0.55]].forEach(([x]) => {
+                const ring = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.35, 0.05), accent);
+                ring.position.set(x, 0.38, -1.89);
+                g.add(ring);
+                const inner = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.28, 0.06), white);
+                inner.position.set(x, 0.38, -1.89);
+                g.add(inner);
+            });
+
+            // 범퍼
+            const bumperF = new THREE.Mesh(new THREE.BoxGeometry(2.05, 0.15, 0.07), rubber);
+            bumperF.position.set(0, 0.16, -1.91);
+            g.add(bumperF);
+            const bumperR = new THREE.Mesh(new THREE.BoxGeometry(2.05, 0.15, 0.07), rubber);
+            bumperR.position.set(0, 0.16, 1.91);
+            g.add(bumperR);
+
+            // 바퀴
+            const wGeo = new THREE.CylinderGeometry(0.3, 0.3, 0.2, 14);
+            const hubGeo = new THREE.CylinderGeometry(0.14, 0.14, 0.22, 14);
+            const hubMat = new THREE.MeshLambertMaterial({ color: 0xcccccc });
+            [[-1.05,-1.2],[1.05,-1.2],[-1.05,1.2],[1.05,1.2]].forEach(([x,z]) => {
+                const w = new THREE.Mesh(wGeo, dark);
+                w.rotation.z = Math.PI / 2;
+                w.position.set(x, 0.1, z);
+                g.add(w);
+                const hub = new THREE.Mesh(hubGeo, hubMat);
+                hub.rotation.z = Math.PI / 2;
+                hub.position.set(x, 0.1, z);
+                g.add(hub);
+            });
+
+            // 🐱 치즈냥이
+            const catOrange  = new THREE.MeshLambertMaterial({ color: 0xF5A623 });
+            const catStripe  = new THREE.MeshLambertMaterial({ color: 0xC8791A });
+            const catPink    = new THREE.MeshLambertMaterial({ color: 0xFFB6C1 });
+            const catBlack   = new THREE.MeshLambertMaterial({ color: 0x111111 });
+            const catWhite   = new THREE.MeshLambertMaterial({ color: 0xffffff });
+
+            const cat = new THREE.Group();
+
+            // 몸통
+            const catBody = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.38, 0.65), catOrange);
+            catBody.position.y = 0;
+            cat.add(catBody);
+
+            // 줄무늬
+            [-0.15, 0.1].forEach(z => {
+                const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.54, 0.4, 0.07), catStripe);
+                stripe.position.set(0, 0, z);
+                cat.add(stripe);
+            });
+
+            // 머리
+            const catHead = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.42, 0.44), catOrange);
+            catHead.position.set(0, 0.38, -0.18);
+            cat.add(catHead);
+
+            // 귀
+            [[-0.14], [0.14]].forEach(([x]) => {
+                const ear = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.16, 0.1), catOrange);
+                ear.position.set(x, 0.65, -0.18);
+                cat.add(ear);
+                const earIn = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.09, 0.11), catPink);
+                earIn.position.set(x, 0.65, -0.18);
+                cat.add(earIn);
+            });
+
+            // 눈
+            [[-0.11], [0.11]].forEach(([x]) => {
+                const eye = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.07, 0.06), catBlack);
+                eye.position.set(x, 0.41, -0.41);
+                cat.add(eye);
+                const shine = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.03, 0.07), catWhite);
+                shine.position.set(x + 0.02, 0.43, -0.41);
+                cat.add(shine);
+            });
+
+            // 코
+            const nose = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.05, 0.06), catPink);
+            nose.position.set(0, 0.35, -0.41);
+            cat.add(nose);
+
+            // 수염 (얇은 박스)
+            [[-0.22, -0.06], [0.22, -0.06], [-0.24, 0.0], [0.24, 0.0]].forEach(([x, z]) => {
+                const whisker = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.015, 0.015), catWhite);
+                whisker.position.set(x, 0.35, -0.41);
+                cat.add(whisker);
+            });
+
+            // 꼬리
+            const tail1 = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.09, 0.38), catOrange);
+            tail1.rotation.x = 0.5;
+            tail1.position.set(0.28, 0.05, 0.38);
+            cat.add(tail1);
+            const tail2 = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.25, 0.09), catOrange);
+            tail2.position.set(0.28, 0.22, 0.55);
+            cat.add(tail2);
+
+            // 앞발
+            [[-0.16], [0.16]].forEach(([x]) => {
+                const paw = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.1, 0.18), catOrange);
+                paw.position.set(x, -0.22, -0.26);
+                cat.add(paw);
+            });
+
+            cat.scale.set(0.6, 0.6, 0.6);
+            cat.position.set(0, 0.85, -0.2);
+            g.add(cat);
+
+            g.position.y = 0.33;
+            return g;
+        }
+
+        const carBuilders = [buildCybertruck, buildBarbieCar, buildCatTruck];
         const car = carBuilders[Math.floor(Math.random() * carBuilders.length)]();
         scene.add(car);
 

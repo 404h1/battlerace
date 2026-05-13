@@ -2,55 +2,77 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>3D 무한 질주 대결</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>BattleRace</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #87CEEB; font-family: 'Arial', sans-serif; }
-        #ui-layer { position: absolute; top: 10px; left: 10px; color: white; text-shadow: 2px 2px 4px #000; z-index: 10; }
-        #status-msg { color: #ffd700; font-weight: bold; display: none; margin-top: 10px; }
+        * { box-sizing: border-box; }
+        body { margin: 0; overflow: hidden; background-color: #87CEEB; font-family: 'Arial', sans-serif; touch-action: none; }
+
+        #ui-layer {
+            position: absolute; top: 10px; left: 10px;
+            color: white; text-shadow: 1px 1px 3px #000; z-index: 10;
+        }
+        #ui-layer h2 { margin: 0 0 4px; font-size: 22px; }
+        #ui-stats { font-size: 13px; opacity: 0.9; line-height: 1.8; }
+        #status-msg { color: #ffd700; font-weight: bold; display: none; margin-top: 6px; font-size: 14px; }
+
+        #touch-hint {
+            display: none;
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+            color: rgba(255,255,255,0.6); font-size: 13px; z-index: 10;
+            text-shadow: 1px 1px 2px #000;
+        }
 
         #game-over {
             display: none;
             position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             text-align: center; color: white;
-            background: rgba(0,0,0,0.88);
-            padding: 30px 40px; border-radius: 12px; z-index: 20;
-            min-width: 340px; max-height: 90vh; overflow-y: auto;
+            background: rgba(0,0,0,0.9);
+            padding: 28px 36px; border-radius: 14px; z-index: 20;
+            width: 340px; max-height: 92vh; overflow-y: auto;
         }
-        #game-over h1 { color: #ff4757; margin: 0 0 4px; }
+        #game-over h1 { color: #ff4757; margin: 0 0 2px; font-size: 28px; }
+        #score-display { font-size: 20px; margin: 4px 0 2px; }
+        #personal-best-notice { font-size: 13px; color: #aaa; margin-bottom: 10px; min-height: 18px; }
+        #personal-best-notice.new-record { color: #ffd700; font-weight: bold; }
 
-        #name-row {
-            display: flex; justify-content: center; align-items: center; gap: 8px; margin: 12px 0 6px;
-        }
+        #name-row { display: flex; justify-content: center; gap: 8px; margin: 10px 0 4px; }
         #name-input {
-            padding: 8px 12px; font-size: 15px; border-radius: 5px;
-            border: none; width: 160px; text-align: center;
+            padding: 8px 12px; font-size: 15px; border-radius: 6px;
+            border: none; width: 170px; text-align: center;
         }
         #submit-btn {
             padding: 8px 16px; font-size: 15px; cursor: pointer;
             background-color: #ff4757; color: white;
-            border: none; border-radius: 5px;
+            border: none; border-radius: 6px; white-space: nowrap;
         }
-        #submit-btn:disabled { background-color: #888; cursor: not-allowed; }
-        #submit-msg { font-size: 13px; color: #aaa; min-height: 18px; }
+        #submit-btn:disabled { background-color: #555; cursor: not-allowed; }
+        #submit-msg { font-size: 13px; color: #aaa; min-height: 18px; margin-bottom: 6px; }
 
-        #ranking-section { margin-top: 16px; text-align: left; }
-        #ranking-section h3 { text-align: center; color: #ffd700; margin: 0 0 8px; }
+        #my-rank-banner {
+            display: none;
+            background: rgba(255,215,0,0.15); border: 1px solid #ffd700;
+            border-radius: 8px; padding: 8px 12px; margin-bottom: 10px;
+            font-size: 14px; color: #ffd700; font-weight: bold;
+        }
+
+        #ranking-section h3 { color: #ffd700; margin: 10px 0 6px; font-size: 15px; }
         #ranking-list { list-style: none; padding: 0; margin: 0; }
         #ranking-list li {
-            display: flex; justify-content: space-between;
-            padding: 5px 8px; border-radius: 4px; font-size: 14px;
+            display: flex; align-items: center;
+            padding: 5px 6px; border-radius: 5px; font-size: 13px;
         }
-        #ranking-list li:nth-child(odd) { background: rgba(255,255,255,0.06); }
+        #ranking-list li:nth-child(odd) { background: rgba(255,255,255,0.05); }
         #ranking-list li.my-score { color: #ffd700; font-weight: bold; background: rgba(255,215,0,0.1); }
-        .rank-pos { width: 28px; }
-        .rank-name { flex: 1; margin: 0 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .rank-score { width: 60px; text-align: right; }
+        .rank-pos { width: 28px; flex-shrink: 0; }
+        .rank-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin: 0 6px; }
+        .rank-score { width: 56px; text-align: right; flex-shrink: 0; }
 
         #retry-btn {
-            padding: 10px 24px; font-size: 15px; cursor: pointer;
+            padding: 10px 28px; font-size: 15px; cursor: pointer;
             background-color: #2ed573; color: white;
-            border: none; border-radius: 5px; margin-top: 16px;
+            border: none; border-radius: 6px; margin-top: 14px; width: 100%;
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -59,13 +81,21 @@
 
     <div id="ui-layer">
         <h2>점수: <span id="score">0</span></h2>
-        <p>조작: ← 왼쪽 / 오른쪽 →</p>
-        <div id="status-msg">⚠️ 조작 반전 상태! ⚠️</div>
+        <div id="ui-stats">
+            <div>최고: <span id="ui-best">0</span></div>
+            <div>속도: <span id="ui-speed">1</span>단계</div>
+        </div>
+        <div id="status-msg">⚠️ 조작 반전! ⚠️</div>
     </div>
+
+    <div id="touch-hint">◀ 왼쪽 탭 &nbsp;|&nbsp; 오른쪽 탭 ▶</div>
 
     <div id="game-over">
         <h1>충돌!</h1>
-        <h2 style="margin:4px 0">내 점수: <span id="final-score">0</span></h2>
+        <div id="score-display">내 점수: <strong><span id="final-score">0</span></strong></div>
+        <div id="personal-best-notice"></div>
+
+        <div id="my-rank-banner"></div>
 
         <div id="name-row">
             <input id="name-input" type="text" maxlength="20" placeholder="닉네임" />
@@ -75,33 +105,40 @@
 
         <div id="ranking-section">
             <h3>🏆 글로벌 랭킹 TOP 10</h3>
-            <ul id="ranking-list"><li style="text-align:center; color:#aaa;">불러오는 중...</li></ul>
+            <ul id="ranking-list"><li style="text-align:center;color:#666;padding:10px;">불러오는 중...</li></ul>
         </div>
 
         <button id="retry-btn" onclick="location.reload()">다시 도전하기</button>
     </div>
 
     <script>
-        // 랜덤 닉네임 생성
-        const adjectives = ['빠른', '느린', '용감한', '겁쟁이', '졸린', '배고픈', '신나는', '멈출수없는', '터보', '무적의'];
-        const nouns = ['거북이', '치타', '달팽이', '레이서', '드라이버', '번개', '로켓', '바람', '고양이', '판다'];
+        // 랜덤 닉네임
+        const adjectives = ['빠른','느린','용감한','겁쟁이','졸린','배고픈','신나는','멈출수없는','터보','무적의','전설의','미친','조용한','시끄러운','날쌘'];
+        const nouns = ['거북이','치타','달팽이','레이서','드라이버','번개','로켓','바람','고양이','판다','독수리','상어','여우','늑대','곰'];
         function randomNickname() {
-            const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
-            const noun = nouns[Math.floor(Math.random() * nouns.length)];
-            return adj + noun;
+            return adjectives[Math.floor(Math.random() * adjectives.length)]
+                 + nouns[Math.floor(Math.random() * nouns.length)];
         }
+
         let savedName = localStorage.getItem('race-nickname');
         if (!savedName) {
             savedName = randomNickname();
             localStorage.setItem('race-nickname', savedName);
         }
         document.getElementById('name-input').value = savedName;
-
         document.getElementById('name-input').addEventListener('input', (e) => {
             localStorage.setItem('race-nickname', e.target.value);
         });
 
-        // Three.js 씬 설정
+        // 개인 최고 점수
+        let personalBest = parseInt(localStorage.getItem('race-best') || '0');
+        document.getElementById('ui-best').innerText = personalBest;
+
+        // 모바일 감지 및 터치 힌트
+        const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) || window.innerWidth < 600;
+        if (isMobile) document.getElementById('touch-hint').style.display = 'block';
+
+        // Three.js 씬
         const scene = new THREE.Scene();
         scene.fog = new THREE.Fog(0x87CEEB, 10, 50);
 
@@ -113,20 +150,23 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        const light = new THREE.DirectionalLight(0xffffff, 1);
-        light.position.set(5, 10, 5);
-        scene.add(light);
+        scene.add(new THREE.DirectionalLight(0xffffff, 1).position.set(5, 10, 5) && new THREE.DirectionalLight(0xffffff, 1));
         scene.add(new THREE.AmbientLight(0x404040));
+        const dLight = new THREE.DirectionalLight(0xffffff, 1);
+        dLight.position.set(5, 10, 5);
+        scene.add(dLight);
 
-        const planeGeo = new THREE.PlaneGeometry(20, 1000);
-        const planeMat = new THREE.MeshLambertMaterial({ color: 0x555555 });
-        const plane = new THREE.Mesh(planeGeo, planeMat);
+        const plane = new THREE.Mesh(
+            new THREE.PlaneGeometry(20, 1000),
+            new THREE.MeshLambertMaterial({ color: 0x555555 })
+        );
         plane.rotation.x = -Math.PI / 2;
         scene.add(plane);
 
-        const carGeo = new THREE.BoxGeometry(2, 1, 4);
-        const carMat = new THREE.MeshLambertMaterial({ color: 0x007bff });
-        const car = new THREE.Mesh(carGeo, carMat);
+        const car = new THREE.Mesh(
+            new THREE.BoxGeometry(2, 1, 4),
+            new THREE.MeshLambertMaterial({ color: 0x007bff })
+        );
         car.position.y = 0.5;
         scene.add(car);
 
@@ -138,16 +178,35 @@
         let finalScore = 0;
         let scoreSubmitted = false;
 
+        // 키보드 조작
         const keys = { ArrowLeft: false, ArrowRight: false };
-        document.addEventListener('keydown', (e) => { if (keys.hasOwnProperty(e.key)) keys[e.key] = true; });
+        document.addEventListener('keydown', (e) => { if (keys.hasOwnProperty(e.key)) { keys[e.key] = true; e.preventDefault(); } });
         document.addEventListener('keyup', (e) => { if (keys.hasOwnProperty(e.key)) keys[e.key] = false; });
+
+        // 터치 조작
+        const touch = { left: false, right: false };
+        renderer.domElement.addEventListener('touchstart', (e) => {
+            if (isGameOver) return;
+            e.preventDefault();
+            for (const t of e.changedTouches) {
+                if (t.clientX < window.innerWidth / 2) touch.left = true;
+                else touch.right = true;
+            }
+        }, { passive: false });
+        renderer.domElement.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            for (const t of e.changedTouches) {
+                if (t.clientX < window.innerWidth / 2) touch.left = false;
+                else touch.right = false;
+            }
+        }, { passive: false });
 
         function createObstacle() {
             if (isGameOver) return;
-
-            const obsGeo = new THREE.BoxGeometry(2, 1, 2);
-            const obstacle = new THREE.Mesh(obsGeo, new THREE.MeshLambertMaterial({ color: 0xff4757 }));
-
+            const obstacle = new THREE.Mesh(
+                new THREE.BoxGeometry(2, 1, 2),
+                new THREE.MeshLambertMaterial({ color: 0xff4757 })
+            );
             const rand = Math.random();
             if (rand < 0.15) {
                 obstacle.material.color.setHex(0xffd700);
@@ -158,14 +217,10 @@
             } else {
                 obstacle.userData = { type: 'normal' };
             }
-
             const lanes = [-4, 0, 4];
-            obstacle.position.x = lanes[Math.floor(Math.random() * lanes.length)];
-            obstacle.position.y = 0.5;
-            obstacle.position.z = -60;
+            obstacle.position.set(lanes[Math.floor(Math.random() * lanes.length)], 0.5, -60);
             scene.add(obstacle);
             obstacles.push(obstacle);
-
             setTimeout(createObstacle, Math.random() * 800 + 400);
         }
 
@@ -175,17 +230,19 @@
             if (isGameOver) return;
             requestAnimationFrame(animate);
 
-            let moveDirection = 0;
-            if (keys.ArrowLeft) moveDirection = -1;
-            if (keys.ArrowRight) moveDirection = 1;
-            if (isConfused) moveDirection *= -1;
+            let moveDir = 0;
+            if (keys.ArrowLeft || touch.left) moveDir = -1;
+            if (keys.ArrowRight || touch.right) moveDir = 1;
+            if (isConfused) moveDir *= -1;
 
-            car.position.x += moveDirection * 0.2;
-            if (car.position.x < -4) car.position.x = -4;
-            if (car.position.x > 4) car.position.x = 4;
+            car.position.x = Math.max(-4, Math.min(4, car.position.x + moveDir * 0.2));
 
             score += 1;
-            document.getElementById('score').innerText = Math.floor(score / 10);
+            const displayScore = Math.floor(score / 10);
+            const speedLevel = Math.floor((speed - 0.3) / 0.05) + 1;
+
+            document.getElementById('score').innerText = displayScore;
+            document.getElementById('ui-speed').innerText = Math.min(speedLevel, 99);
             speed += 0.0001;
 
             for (let i = 0; i < obstacles.length; i++) {
@@ -198,9 +255,7 @@
 
                 if (Math.abs(car.position.x - obs.position.x) < 2 && Math.abs(car.position.z - obs.position.z) < 3) {
                     if (obs.userData.type === 'coin') {
-                        scene.remove(obs);
-                        obstacles.splice(i, 1);
-                        i--;
+                        scene.remove(obs); obstacles.splice(i, 1); i--;
                         isConfused = true;
                         document.getElementById('status-msg').style.display = 'block';
                         setTimeout(() => {
@@ -214,11 +269,7 @@
                     }
                 }
 
-                if (obs.position.z > 10) {
-                    scene.remove(obs);
-                    obstacles.splice(i, 1);
-                    i--;
-                }
+                if (obs.position.z > 10) { scene.remove(obs); obstacles.splice(i, 1); i--; }
             }
 
             renderer.render(scene, camera);
@@ -230,6 +281,19 @@
             isGameOver = true;
             finalScore = Math.floor(score / 10);
             document.getElementById('final-score').innerText = finalScore;
+
+            const notice = document.getElementById('personal-best-notice');
+            if (finalScore > personalBest) {
+                personalBest = finalScore;
+                localStorage.setItem('race-best', personalBest);
+                document.getElementById('ui-best').innerText = personalBest;
+                notice.innerText = '🎉 신기록!';
+                notice.className = 'new-record';
+            } else {
+                notice.innerText = `개인 최고: ${personalBest}점`;
+                notice.className = '';
+            }
+
             document.getElementById('game-over').style.display = 'block';
             loadRanking();
         }
@@ -241,13 +305,13 @@
                 const data = await res.json();
 
                 if (!data.length) {
-                    list.innerHTML = '<li style="text-align:center;color:#aaa;">아직 기록이 없어요!</li>';
+                    list.innerHTML = '<li style="text-align:center;color:#666;padding:10px;">아직 기록이 없어요!</li>';
                     return;
                 }
 
                 list.innerHTML = data.map((entry, i) => {
                     const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`;
-                    const isMe = highlightName && entry.name === highlightName && entry.score === finalScore;
+                    const isMe = highlightName && entry.name === highlightName;
                     return `<li class="${isMe ? 'my-score' : ''}">
                         <span class="rank-pos">${medal}</span>
                         <span class="rank-name">${entry.name}</span>
@@ -255,7 +319,7 @@
                     </li>`;
                 }).join('');
             } catch (e) {
-                list.innerHTML = '<li style="text-align:center;color:#aaa;">랭킹을 불러올 수 없어요.</li>';
+                list.innerHTML = '<li style="text-align:center;color:#666;padding:10px;">랭킹을 불러올 수 없어요.</li>';
             }
         }
 
@@ -265,10 +329,7 @@
             const msg = document.getElementById('submit-msg');
             const name = document.getElementById('name-input').value.trim();
 
-            if (!name) {
-                document.getElementById('name-input').focus();
-                return;
-            }
+            if (!name) { document.getElementById('name-input').focus(); return; }
 
             btn.disabled = true;
             btn.innerText = '등록 중...';
@@ -280,23 +341,36 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name, score: finalScore })
                 });
+                const result = await res.json();
 
                 if (!res.ok) {
-                    const err = await res.json();
-                    msg.innerText = err.error || '오류가 발생했습니다.';
-                    btn.disabled = false;
-                    btn.innerText = '등록';
+                    msg.innerText = result.error || '오류가 발생했습니다.';
+                    btn.disabled = false; btn.innerText = '등록';
                     return;
                 }
 
                 scoreSubmitted = true;
                 btn.innerText = '등록 완료 ✓';
-                msg.innerText = `${name}으로 등록됐어요!`;
+
+                if (!result.updated) {
+                    msg.innerText = `기존 최고 점수(${result.best}점)가 더 높아요.`;
+                } else {
+                    msg.innerText = '등록됐어요!';
+                }
+
+                // 내 순위 표시
+                const rankRes = await fetch(`/api/rank/${encodeURIComponent(name)}`);
+                const rankData = await rankRes.json();
+                if (rankData.rank > 0) {
+                    const banner = document.getElementById('my-rank-banner');
+                    banner.style.display = 'block';
+                    banner.innerText = `🏅 현재 ${rankData.rank}위 / 전체 ${rankData.total}명`;
+                }
+
                 await loadRanking(name);
             } catch (e) {
                 msg.innerText = '서버에 연결할 수 없습니다.';
-                btn.disabled = false;
-                btn.innerText = '등록';
+                btn.disabled = false; btn.innerText = '등록';
             }
         }
 

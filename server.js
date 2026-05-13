@@ -24,7 +24,7 @@ app.get('/', (req, res) => {
 app.get('/api/scores', async (req, res) => {
   const { data, error } = await supabase
     .from('scores')
-    .select('name, score, created_at')
+    .select('name, score')
     .order('score', { ascending: false })
     .limit(10);
 
@@ -32,25 +32,57 @@ app.get('/api/scores', async (req, res) => {
   res.json(data);
 });
 
-// 점수 저장
+// 점수 저장 (개인 최고 점수만 업데이트)
 app.post('/api/scores', async (req, res) => {
   const { name, score } = req.body;
 
-  if (!name || typeof name !== 'string' || name.trim().length === 0) {
+  if (!name || typeof name !== 'string' || name.trim().length === 0)
     return res.status(400).json({ error: '이름을 입력해주세요.' });
-  }
-  if (typeof score !== 'number' || score < 0 || score > 100000) {
+  if (typeof score !== 'number' || score < 0 || score > 100000)
     return res.status(400).json({ error: '유효하지 않은 점수입니다.' });
+
+  const cleanName = name.trim().slice(0, 20);
+  const cleanScore = Math.floor(score);
+
+  // 기존 점수 확인
+  const { data: existing } = await supabase
+    .from('scores')
+    .select('score')
+    .eq('name', cleanName)
+    .maybeSingle();
+
+  // 기존 최고 점수보다 낮으면 저장 안 함
+  if (existing && existing.score >= cleanScore) {
+    return res.json({ updated: false, best: existing.score });
   }
 
+  // 없으면 insert, 있으면 update
   const { data, error } = await supabase
     .from('scores')
-    .insert({ name: name.trim().slice(0, 20), score: Math.floor(score) })
+    .upsert({ name: cleanName, score: cleanScore }, { onConflict: 'name' })
     .select()
     .single();
 
   if (error) return res.status(500).json({ error: error.message });
-  res.json(data);
+  res.json({ updated: true, ...data });
+});
+
+// 특정 닉네임의 순위 조회
+app.get('/api/rank/:name', async (req, res) => {
+  const name = req.params.name;
+
+  const { data, error } = await supabase
+    .from('scores')
+    .select('name, score')
+    .order('score', { ascending: false });
+
+  if (error) return res.status(500).json({ error: error.message });
+
+  const rank = data.findIndex(e => e.name === name) + 1;
+  const total = data.length;
+  const entry = data.find(e => e.name === name);
+
+  res.json({ rank, total, score: entry?.score ?? 0 });
 });
 
 app.listen(PORT, () => {

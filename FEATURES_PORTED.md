@@ -12,6 +12,17 @@ Use the in-game map selector on the top right, or open with a URL:
 /?theme=valley
 ```
 
+## Game Modes
+
+Use the in-game mode selector, or open with a URL:
+
+```text
+/?mode=item
+/?mode=original
+```
+
+Original mode keeps the classic rules: red obstacles only, no items, no jumps, no guided purple boxes.
+
 ## Game Over Message
 
 ```text

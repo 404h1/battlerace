@@ -65,7 +65,13 @@
             border-radius: 6px; color: white;
             background: rgba(11,18,32,0.72);
         }
-        #map-select option { color: #111827; }
+        #mode-select {
+            min-width: 112px; padding: 6px 8px;
+            border: 1px solid rgba(255,255,255,0.24);
+            border-radius: 6px; color: white;
+            background: rgba(11,18,32,0.72);
+        }
+        #map-select option, #mode-select option { color: #111827; }
         #map-apply {
             padding: 6px 10px; border: none; border-radius: 6px;
             color: #102014; background: #86efac;
@@ -207,6 +213,11 @@
             <option value="mountain">산</option>
             <option value="valley">계곡</option>
         </select>
+        <label for="mode-select">모드</label>
+        <select id="mode-select">
+            <option value="item">아이템전</option>
+            <option value="original">오리지널</option>
+        </select>
         <button id="map-apply" type="button">적용</button>
     </div>
 
@@ -246,6 +257,11 @@
         const selectedTheme = themeNames.includes((gameParams.get('theme') || '').toLowerCase())
             ? gameParams.get('theme').toLowerCase()
             : 'busan';
+        const modeNames = ['item', 'original'];
+        const selectedMode = modeNames.includes((gameParams.get('mode') || '').toLowerCase())
+            ? gameParams.get('mode').toLowerCase()
+            : 'item';
+        const isOriginalMode = selectedMode === 'original';
         const customGameOverText = gameParams.get('gameOverText') || gameParams.get('ment') || '';
         const jumpDurationMs = Number(gameParams.get('jumpMs') || '3200');
         const maxJumpCharges = Number(gameParams.get('jumpCharges') || '3');
@@ -255,9 +271,11 @@
         }
 
         document.getElementById('map-select').value = selectedTheme;
+        document.getElementById('mode-select').value = selectedMode;
         document.getElementById('map-apply').addEventListener('click', () => {
             const next = new URL(location.href);
             next.searchParams.set('theme', document.getElementById('map-select').value);
+            next.searchParams.set('mode', document.getElementById('mode-select').value);
             location.href = next.toString();
         });
 
@@ -1374,7 +1392,7 @@
             handleEasterEggKey(e.key);
             if (e.code === 'Space') {
                 e.preventDefault();
-                startJump();
+                if (!isOriginalMode) startJump();
                 return;
             }
             const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
@@ -1425,7 +1443,13 @@
             if (isGameOver) return;
             let obstacle;
             const rand = Math.random();
-            if (rand < 0.14) {
+            if (isOriginalMode) {
+                obstacle = new THREE.Mesh(
+                    new THREE.BoxGeometry(2, 1, 2),
+                    new THREE.MeshLambertMaterial({ color: 0xff4757 })
+                );
+                obstacle.userData = { type: 'normal' };
+            } else if (rand < 0.14) {
                 obstacle = createItemMesh('firework');
             } else if (rand < 0.28) {
                 obstacle = createItemMesh('confuse');
@@ -1438,7 +1462,7 @@
                 );
             }
 
-            if (rand >= 0.40 && rand < 0.70) {
+            if (!isOriginalMode && rand >= 0.40 && rand < 0.70) {
                 obstacle.material.color.setHex(0x800080);
                 obstacle.userData = { type: 'guided' };
             } else if (!obstacle.userData.type) {
@@ -1479,11 +1503,11 @@
 
             document.getElementById('score').innerText = displayScore;
             document.getElementById('ui-speed').innerText = Math.min(speedLevel, 99);
-            document.getElementById('ui-jump').innerText = `${jumpCharges}/${maxJumpCharges}`;
+            document.getElementById('ui-jump').innerText = isOriginalMode ? '-' : `${jumpCharges}/${maxJumpCharges}`;
             speed += 0.0001;
             updateScenery();
             updateFireworks();
-            updateJumpState();
+            if (!isOriginalMode) updateJumpState();
             updateEasterEggs();
 
             for (let i = 0; i < obstacles.length; i++) {

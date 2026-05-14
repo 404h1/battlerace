@@ -79,7 +79,28 @@
             box-shadow: 0 24px 70px rgba(0,0,0,0.42);
         }
         #game-over h1 { color: #ff4757; margin: 0 0 2px; font-size: 28px; }
-        #score-display { font-size: 20px; margin: 4px 0 2px; }
+        #taunt-badge {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-height: 28px; padding: 5px 11px; margin: 8px 0 6px;
+            border-radius: 999px; font-size: 12px; font-weight: 800;
+            color: #221407; background: linear-gradient(90deg, #ffd166, #ff8fab);
+            box-shadow: 0 0 22px rgba(255,143,171,0.35);
+        }
+        #taunt-line {
+            min-height: 48px; display: flex; align-items: center; justify-content: center;
+            margin: 4px 0 10px; padding: 10px 12px;
+            border-radius: 8px; font-size: 17px; font-weight: 800; line-height: 1.35;
+            color: #ffffff;
+            background: rgba(255,255,255,0.09);
+            border: 1px solid rgba(255,255,255,0.12);
+            animation: tauntPop 0.34s ease-out both;
+        }
+        #score-display {
+            display: flex; align-items: center; justify-content: space-between; gap: 10px;
+            font-size: 15px; margin: 8px 0 4px; padding: 9px 12px;
+            border-radius: 8px; background: rgba(0,0,0,0.22);
+        }
+        #score-display strong { font-size: 24px; color: #23d5ff; }
         #personal-best-notice { font-size: 13px; color: #aaa; margin-bottom: 10px; min-height: 18px; }
         #personal-best-notice.new-record { color: #ffd700; font-weight: bold; }
 
@@ -126,6 +147,11 @@
             to { transform: translateX(1px); filter: brightness(1.16); }
         }
 
+        @keyframes tauntPop {
+            from { opacity: 0; transform: translateY(8px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
         @media (max-width: 560px) {
             #ui-layer { top: 10px; left: 10px; min-width: 152px; padding: 10px; }
             #ui-layer h2 { font-size: 20px; }
@@ -147,7 +173,7 @@
         <div id="status-msg">⚠️ 조작 반전! ⚠️</div>
     </div>
 
-    <div id="touch-hint">◀ 왼쪽 탭 &nbsp;|&nbsp; 오른쪽 탭 ▶</div>
+    <div id="touch-hint">상하좌우 탭 / WASD</div>
 
     <div id="item-toast">
         <div id="item-toast-title"></div>
@@ -156,6 +182,8 @@
 
     <div id="game-over">
         <h1>충돌!</h1>
+        <div id="taunt-badge"></div>
+        <div id="taunt-line"></div>
         <div id="score-display">내 점수: <strong><span id="final-score">0</span></strong></div>
         <div id="personal-best-notice"></div>
 
@@ -292,6 +320,94 @@
             makeSign(0xffd166, 0x222222, 13, z - 10, 'item');
         }
 
+        function buildCyberPilot() {
+            const pilot = new THREE.Group();
+            const suit = new THREE.MeshLambertMaterial({ color: 0x121820 });
+            const helmet = new THREE.MeshLambertMaterial({ color: 0xd8f3ff, emissive: 0x23d5ff, emissiveIntensity: 0.16 });
+            const visor = new THREE.MeshLambertMaterial({ color: 0x101923, emissive: 0x23d5ff, emissiveIntensity: 0.45 });
+            const neon = new THREE.MeshLambertMaterial({ color: 0x23d5ff, emissive: 0x23d5ff, emissiveIntensity: 0.55 });
+
+            const body = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.5, 0.32), suit);
+            body.position.y = 0.22;
+            pilot.add(body);
+
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.42, 0.42), helmet);
+            head.position.set(0, 0.73, -0.02);
+            pilot.add(head);
+
+            const face = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.13, 0.04), visor);
+            face.position.set(0, 0.76, -0.24);
+            pilot.add(face);
+
+            const antenna = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.32, 0.06), neon);
+            antenna.position.set(0.2, 1.1, 0);
+            pilot.add(antenna);
+
+            const antennaTip = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.14, 0.14), neon);
+            antennaTip.position.set(0.2, 1.28, 0);
+            pilot.add(antennaTip);
+
+            const scarf = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.08, 0.12), neon);
+            scarf.position.set(-0.25, 0.48, 0.08);
+            scarf.rotation.z = -0.14;
+            pilot.add(scarf);
+
+            pilot.scale.set(1.18, 1.18, 1.18);
+            pilot.position.set(0, 1.12, -0.55);
+            pilot.rotation.x = -0.08;
+            return pilot;
+        }
+
+        function buildPinkRacerPersona() {
+            const doll = new THREE.Group();
+            const skin = new THREE.MeshLambertMaterial({ color: 0xffd3b6 });
+            const hair = new THREE.MeshLambertMaterial({ color: 0xffe066 });
+            const outfit = new THREE.MeshLambertMaterial({ color: 0xff4fa3, emissive: 0xff4fa3, emissiveIntensity: 0.12 });
+            const glasses = new THREE.MeshLambertMaterial({ color: 0x111111 });
+            const white = new THREE.MeshLambertMaterial({ color: 0xffffff });
+
+            const body = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.48, 0.28), outfit);
+            body.position.y = 0.2;
+            doll.add(body);
+
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.38, 0.36), skin);
+            head.position.set(0, 0.63, -0.02);
+            doll.add(head);
+
+            const hairCap = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.16, 0.4), hair);
+            hairCap.position.set(0, 0.82, -0.01);
+            doll.add(hairCap);
+
+            const ponytail = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.34, 0.2), hair);
+            ponytail.position.set(0.31, 0.62, 0.08);
+            ponytail.rotation.z = -0.22;
+            doll.add(ponytail);
+
+            [-0.11, 0.11].forEach(x => {
+                const lens = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.08, 0.04), glasses);
+                lens.position.set(x, 0.64, -0.22);
+                doll.add(lens);
+            });
+
+            const smile = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.035, 0.04), white);
+            smile.position.set(0, 0.54, -0.22);
+            doll.add(smile);
+
+            const bowLeft = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.12, 0.08), outfit);
+            bowLeft.position.set(-0.13, 0.96, -0.02);
+            bowLeft.rotation.z = 0.28;
+            doll.add(bowLeft);
+            const bowRight = bowLeft.clone();
+            bowRight.position.x = 0.13;
+            bowRight.rotation.z = -0.28;
+            doll.add(bowRight);
+
+            doll.scale.set(1.18, 1.18, 1.18);
+            doll.position.set(0, 0.84, -0.18);
+            doll.rotation.x = -0.1;
+            return doll;
+        }
+
         function buildCybertruck() {
             const g = new THREE.Group();
             const silver = new THREE.MeshLambertMaterial({ color: 0x7A8A92 });
@@ -325,6 +441,7 @@
                 g.add(w);
             });
 
+            g.add(buildCyberPilot());
             g.position.y = 0.33;
             return g;
         }
@@ -412,6 +529,7 @@
                 g.add(hub);
             });
 
+            g.add(buildPinkRacerPersona());
             g.position.y = 0.33;
             return g;
         }
@@ -486,6 +604,8 @@
             const catPink    = new THREE.MeshLambertMaterial({ color: 0xFFB6C1 });
             const catBlack   = new THREE.MeshLambertMaterial({ color: 0x111111 });
             const catWhite   = new THREE.MeshLambertMaterial({ color: 0xffffff });
+            const catGoggle  = new THREE.MeshLambertMaterial({ color: 0x23d5ff, emissive: 0x23d5ff, emissiveIntensity: 0.28 });
+            const scarfMat   = new THREE.MeshLambertMaterial({ color: 0xef476f, emissive: 0xef476f, emissiveIntensity: 0.1 });
 
             const cat = new THREE.Group();
 
@@ -526,10 +646,25 @@
                 cat.add(shine);
             });
 
+            // 레이싱 고글
+            [[-0.11], [0.11]].forEach(([x]) => {
+                const lens = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.1, 0.045), catGoggle);
+                lens.position.set(x, 0.44, -0.445);
+                cat.add(lens);
+            });
+            const strap = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.035, 0.045), catBlack);
+            strap.position.set(0, 0.44, -0.447);
+            cat.add(strap);
+
             // 코
             const nose = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.05, 0.06), catPink);
             nose.position.set(0, 0.35, -0.41);
             cat.add(nose);
+
+            const scarf = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.07, 0.11), scarfMat);
+            scarf.position.set(-0.18, 0.14, -0.28);
+            scarf.rotation.z = -0.18;
+            cat.add(scarf);
 
             // 수염 (얇은 박스)
             [[-0.22, -0.06], [0.22, -0.06], [-0.24, 0.0], [0.24, 0.0]].forEach(([x, z]) => {
@@ -554,8 +689,8 @@
                 cat.add(paw);
             });
 
-            cat.scale.set(0.6, 0.6, 0.6);
-            cat.position.set(0, 0.85, -0.2);
+            cat.scale.set(0.7, 0.7, 0.7);
+            cat.position.set(0, 0.9, -0.2);
             g.add(cat);
 
             g.position.y = 0.33;
@@ -575,7 +710,66 @@
         let scoreSubmitted = false;
         let sessionId = null;
         let toastTimer = null;
+        let lastGameOverWasRecord = false;
         const fireworks = [];
+        const taunts = {
+            tiny: [
+                '출발선이랑 친구 먹었네?',
+                '방금 건 주행이 아니라 출석체크였어요.',
+                '차보다 멘탈이 먼저 폐차됐네요.',
+                '브레이크 테스트는 합격. 레이스는 불합격.'
+            ],
+            normal: [
+                '좋았는데, 장애물이 더 설득력 있었어요.',
+                '도로가 세 칸인데 왜 벽이랑 상담했죠?',
+                '면허 시험장이었으면 감독관이 문 열고 내렸어요.',
+                '방금 그 코너, 예술점수만 1등입니다.'
+            ],
+            high: [
+                '오, 꽤 갔네요. 마지막 판단만 빼고요.',
+                '실력은 있었어요. 생존 본능이 결근했지.',
+                '랭킹이 살짝 긴장했다가 바로 누웠습니다.',
+                '여기까지 온 건 인정. 마무리는 신고감.'
+            ],
+            record: [
+                '신기록인데 탈락이라니, 엔딩까지 완벽하게 망쳤네요.',
+                '최고 기록 갱신! 그리고 차는 바로 퇴근.',
+                '잘했어요. 방금 장애물도 기립박수 쳤을 겁니다.',
+                '기록은 세웠고, 자존심은 접혔습니다.'
+            ]
+        };
+        const tauntBadges = {
+            tiny: '초고속 탈락',
+            normal: '아쉬운 충돌',
+            high: '거의 레이서',
+            record: '신기록 박살'
+        };
+        const championTaunts = {
+            tiny: [
+                name => `${name}: 출발선이 아직도 보이는데 벌써 끝났어요?`,
+                name => `${name}: 방금 지나간 거 맞죠? 리플레이도 짧겠네요.`,
+                name => `${name}: 제 기록 보러 오기도 전에 주차하셨네요.`,
+                name => `${name}: 이 정도면 레이스가 아니라 새로고침입니다.`
+            ],
+            normal: [
+                name => `${name}: 도로는 넓었는데 왜 제 승리를 도와줘요?`,
+                name => `${name}: 괜찮아요, 제 1등 자리는 아직 뜨끈합니다.`,
+                name => `${name}: 방금 플레이 보고 랭킹표가 안심했어요.`,
+                name => `${name}: 그 정도 속도면 제 기록은 구경도 못 하겠네요.`
+            ],
+            high: [
+                name => `${name}: 오, 좀 긴장했는데 마지막에 스스로 해결하네요.`,
+                name => `${name}: 여기까지 온 건 인정. 제 기록은 아직 높은 층이고요.`,
+                name => `${name}: 거의 잡을 뻔했죠? 네, 거의가 제일 아프죠.`,
+                name => `${name}: 방금은 위협적이었어요. 과거형입니다.`
+            ],
+            record: [
+                name => `${name}: 신기록 축하해요. 그래도 박은 건 박은 겁니다.`,
+                name => `${name}: 잠깐만요, 1등 자리 넘겨주기 전에 한 번 웃고요.`,
+                name => `${name}: 잘했어요. 이제 제가 다시 되찾으러 갑니다.`,
+                name => `${name}: 기록은 인정. 마무리는 제가 캡처해둘게요.`
+            ]
+        };
         const itemInfo = {
             firework: {
                 title: '폭죽 아이템!',
@@ -700,6 +894,29 @@
             });
         }
 
+        function pickRandom(list) {
+            return list[Math.floor(Math.random() * list.length)];
+        }
+
+        function getTauntTier(isNewRecord) {
+            let tier = 'normal';
+            if (isNewRecord) tier = 'record';
+            else if (finalScore < 25) tier = 'tiny';
+            else if (finalScore >= Math.max(80, personalBest * 0.8)) tier = 'high';
+            return tier;
+        }
+
+        function showGameOverTaunt(isNewRecord, championName = '') {
+            const tier = getTauntTier(isNewRecord);
+            const cleanChampion = championName.trim();
+            document.getElementById('taunt-badge').innerText = cleanChampion
+                ? `1등 ${cleanChampion}의 한마디`
+                : tauntBadges[tier];
+            document.getElementById('taunt-line').innerText = cleanChampion
+                ? pickRandom(championTaunts[tier])(cleanChampion)
+                : pickRandom(taunts[tier]);
+        }
+
         // 게임 시작 시 세션 발급
         fetch('/api/session', { method: 'POST' })
             .then(r => r.json())
@@ -707,25 +924,62 @@
             .catch(() => {});
 
         // 키보드 조작
-        const keys = { ArrowLeft: false, ArrowRight: false };
-        document.addEventListener('keydown', (e) => { if (keys.hasOwnProperty(e.key)) { keys[e.key] = true; e.preventDefault(); } });
-        document.addEventListener('keyup', (e) => { if (keys.hasOwnProperty(e.key)) keys[e.key] = false; });
+        const keys = {
+            ArrowLeft: false,
+            ArrowRight: false,
+            ArrowUp: false,
+            ArrowDown: false,
+            a: false,
+            d: false,
+            w: false,
+            s: false
+        };
+        const carBounds = { minX: -4, maxX: 4, minZ: -3, maxZ: 3 };
+        const lateralSpeed = 0.2;
+        const forwardSpeed = 0.16;
+
+        document.addEventListener('keydown', (e) => {
+            const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+            if (keys.hasOwnProperty(key)) {
+                keys[key] = true;
+                e.preventDefault();
+            }
+        });
+        document.addEventListener('keyup', (e) => {
+            const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+            if (keys.hasOwnProperty(key)) keys[key] = false;
+        });
 
         // 터치 조작
-        const touch = { left: false, right: false };
+        const touch = { left: false, right: false, up: false, down: false };
+        function setTouchDirection(t, isDown) {
+            const dx = t.clientX - window.innerWidth / 2;
+            const dy = t.clientY - window.innerHeight / 2;
+            if (Math.abs(dx) > Math.abs(dy)) {
+                if (dx < 0) touch.left = isDown;
+                else touch.right = isDown;
+            } else {
+                if (dy < 0) touch.up = isDown;
+                else touch.down = isDown;
+            }
+        }
         renderer.domElement.addEventListener('touchstart', (e) => {
             if (isGameOver) return;
             e.preventDefault();
             for (const t of e.changedTouches) {
-                if (t.clientX < window.innerWidth / 2) touch.left = true;
-                else touch.right = true;
+                setTouchDirection(t, true);
             }
         }, { passive: false });
         renderer.domElement.addEventListener('touchend', (e) => {
             e.preventDefault();
             for (const t of e.changedTouches) {
-                if (t.clientX < window.innerWidth / 2) touch.left = false;
-                else touch.right = false;
+                setTouchDirection(t, false);
+            }
+        }, { passive: false });
+        renderer.domElement.addEventListener('touchcancel', (e) => {
+            e.preventDefault();
+            for (const t of e.changedTouches) {
+                setTouchDirection(t, false);
             }
         }, { passive: false });
 
@@ -763,12 +1017,21 @@
             if (isGameOver) return;
             requestAnimationFrame(animate);
 
-            let moveDir = 0;
-            if (keys.ArrowLeft || touch.left) moveDir = -1;
-            if (keys.ArrowRight || touch.right) moveDir = 1;
-            if (isConfused) moveDir *= -1;
+            let moveX = 0;
+            let moveZ = 0;
+            if (keys.ArrowLeft || keys.a || touch.left) moveX -= 1;
+            if (keys.ArrowRight || keys.d || touch.right) moveX += 1;
+            if (keys.ArrowUp || keys.w || touch.up) moveZ -= 1;
+            if (keys.ArrowDown || keys.s || touch.down) moveZ += 1;
+            if (isConfused) {
+                moveX *= -1;
+                moveZ *= -1;
+            }
 
-            car.position.x = Math.max(-4, Math.min(4, car.position.x + moveDir * 0.2));
+            car.position.x = Math.max(carBounds.minX, Math.min(carBounds.maxX, car.position.x + moveX * lateralSpeed));
+            car.position.z = Math.max(carBounds.minZ, Math.min(carBounds.maxZ, car.position.z + moveZ * forwardSpeed));
+            car.rotation.z = -moveX * 0.08;
+            car.rotation.x = moveZ * 0.04;
 
             score += 1;
             const displayScore = Math.floor(score / 10);
@@ -820,7 +1083,9 @@
             document.getElementById('final-score').innerText = finalScore;
 
             const notice = document.getElementById('personal-best-notice');
+            let isNewRecord = false;
             if (finalScore > personalBest) {
+                isNewRecord = true;
                 personalBest = finalScore;
                 localStorage.setItem('race-best', personalBest);
                 document.getElementById('ui-best').innerText = personalBest;
@@ -831,11 +1096,13 @@
                 notice.className = '';
             }
 
+            lastGameOverWasRecord = isNewRecord;
+            showGameOverTaunt(isNewRecord);
             document.getElementById('game-over').style.display = 'block';
-            loadRanking();
+            loadRanking(null, true);
         }
 
-        async function loadRanking(highlightName = null) {
+        async function loadRanking(highlightName = null, updateTaunt = false) {
             const list = document.getElementById('ranking-list');
             try {
                 const res = await fetch('/api/scores');
@@ -844,6 +1111,10 @@
                 if (!data.length) {
                     list.innerHTML = '<li style="text-align:center;color:#666;padding:10px;">아직 기록이 없어요!</li>';
                     return;
+                }
+
+                if (updateTaunt && data[0]?.name) {
+                    showGameOverTaunt(lastGameOverWasRecord, data[0].name);
                 }
 
                 list.innerHTML = data.map((entry, i) => {
@@ -904,7 +1175,7 @@
                     banner.innerText = `🏅 현재 ${rankData.rank}위 / 전체 ${rankData.total}명`;
                 }
 
-                await loadRanking(name);
+                await loadRanking(name, true);
             } catch (e) {
                 msg.innerText = '서버에 연결할 수 없습니다.';
                 btn.disabled = false; btn.innerText = '등록';

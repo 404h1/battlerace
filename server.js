@@ -72,12 +72,9 @@ app.post('/api/scores', async (req, res) => {
   if (typeof score !== 'number' || score < 0 || score > 100000)
     return res.status(400).json({ error: '유효하지 않은 점수입니다.' });
 
-  // HMAC 서명 검증 + 시간 기반 점수 검증
+  // HMAC 서명 검증 (서버리스 호환, 주사율 무관)
   const startTime = verifyToken(sessionId);
   if (!startTime) return res.status(400).json({ error: '유효하지 않은 세션입니다.' });
-  const elapsedSec = (Date.now() - startTime) / 1000;
-  const maxPossible = Math.floor(elapsedSec * 6 * 1.15);
-  if (score > maxPossible) return res.status(400).json({ error: '유효하지 않은 점수입니다.' });
 
   const cleanName = name.trim().slice(0, 20);
   const cleanScore = Math.floor(score);

@@ -48,6 +48,30 @@
             backdrop-filter: blur(8px);
         }
 
+        #map-panel {
+            position: absolute; top: 14px; right: 14px; z-index: 11;
+            display: flex; align-items: center; gap: 8px;
+            padding: 10px 12px; border-radius: 8px;
+            color: white;
+            background: linear-gradient(145deg, rgba(16,25,44,0.82), rgba(22,38,64,0.66));
+            border: 1px solid rgba(255,255,255,0.24);
+            box-shadow: 0 14px 36px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.18);
+            backdrop-filter: blur(10px);
+            font-size: 13px;
+        }
+        #map-select {
+            min-width: 112px; padding: 6px 8px;
+            border: 1px solid rgba(255,255,255,0.24);
+            border-radius: 6px; color: white;
+            background: rgba(11,18,32,0.72);
+        }
+        #map-select option { color: #111827; }
+        #map-apply {
+            padding: 6px 10px; border: none; border-radius: 6px;
+            color: #102014; background: #86efac;
+            font-weight: 800; cursor: pointer;
+        }
+
         #item-toast {
             position: absolute; top: 18px; left: 50%;
             transform: translate(-50%, -18px) scale(0.96);
@@ -64,6 +88,7 @@
         #item-toast.show { opacity: 1; transform: translate(-50%, 0) scale(1); }
         #item-toast.firework { box-shadow: 0 18px 42px rgba(0,0,0,0.32), 0 0 34px rgba(255,209,102,0.55); }
         #item-toast.confuse { box-shadow: 0 18px 42px rgba(0,0,0,0.32), 0 0 34px rgba(174,91,255,0.55); }
+        #item-toast.jump { box-shadow: 0 18px 42px rgba(0,0,0,0.32), 0 0 34px rgba(34,197,94,0.55); }
         #item-toast-title { font-size: 17px; font-weight: 800; margin-bottom: 3px; }
         #item-toast-desc { font-size: 13px; color: rgba(255,255,255,0.78); }
 
@@ -155,6 +180,7 @@
         @media (max-width: 560px) {
             #ui-layer { top: 10px; left: 10px; min-width: 152px; padding: 10px; }
             #ui-layer h2 { font-size: 20px; }
+            #map-panel { top: auto; right: 10px; bottom: 62px; left: 10px; justify-content: space-between; }
             #game-over { width: calc(100vw - 28px); padding: 24px 20px; }
             #name-row { flex-direction: column; }
             #name-input { width: 100%; }
@@ -169,8 +195,19 @@
         <div id="ui-stats">
             <div>최고: <span id="ui-best">0</span></div>
             <div>속도: <span id="ui-speed">1</span>단계</div>
+            <div>점프: <span id="ui-jump">0</span></div>
         </div>
         <div id="status-msg">⚠️ 조작 반전! ⚠️</div>
+    </div>
+
+    <div id="map-panel">
+        <label for="map-select">맵</label>
+        <select id="map-select">
+            <option value="busan">부산 바다</option>
+            <option value="mountain">산</option>
+            <option value="valley">계곡</option>
+        </select>
+        <button id="map-apply" type="button">적용</button>
     </div>
 
     <div id="touch-hint">상하좌우 탭 / WASD</div>
@@ -204,6 +241,26 @@
     </div>
 
     <script>
+        const gameParams = new URLSearchParams(location.search);
+        const themeNames = ['busan', 'mountain', 'valley'];
+        const selectedTheme = themeNames.includes((gameParams.get('theme') || '').toLowerCase())
+            ? gameParams.get('theme').toLowerCase()
+            : 'busan';
+        const customGameOverText = gameParams.get('gameOverText') || gameParams.get('ment') || '';
+        const jumpDurationMs = Number(gameParams.get('jumpMs') || '3200');
+        const maxJumpCharges = Number(gameParams.get('jumpCharges') || '3');
+
+        if (customGameOverText) {
+            document.querySelector('#game-over h1').textContent = customGameOverText.slice(0, 40);
+        }
+
+        document.getElementById('map-select').value = selectedTheme;
+        document.getElementById('map-apply').addEventListener('click', () => {
+            const next = new URL(location.href);
+            next.searchParams.set('theme', document.getElementById('map-select').value);
+            location.href = next.toString();
+        });
+
         // 랜덤 닉네임
         const adjectives = ['빠른','느린','용감한','겁쟁이','졸린','배고픈','신나는','멈출수없는','터보','무적의','전설의','미친','조용한','시끄러운','날쌘'];
         const nouns = ['거북이','치타','달팽이','레이서','드라이버','번개','로켓','바람','고양이','판다','독수리','상어','여우','늑대','곰'];
@@ -251,9 +308,35 @@
         dLight.position.set(5, 10, 5);
         scene.add(dLight);
 
+        function createAsphaltTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 256;
+            canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#3f454c';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = 0; i < 1600; i += 1) {
+                const shade = 55 + Math.floor(Math.random() * 45);
+                ctx.fillStyle = `rgba(${shade},${shade + 3},${shade + 8},${0.18 + Math.random() * 0.3})`;
+                ctx.fillRect(Math.random() * 256, Math.random() * 256, 1 + Math.random() * 2, 1 + Math.random() * 2);
+            }
+
+            ctx.fillStyle = 'rgba(255,255,255,0.08)';
+            for (let y = 0; y < 256; y += 28) {
+                ctx.fillRect(0, y, 256, 1);
+            }
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
+            texture.repeat.set(3, 90);
+            return texture;
+        }
+
         const plane = new THREE.Mesh(
             new THREE.PlaneGeometry(20, 1000),
-            new THREE.MeshLambertMaterial({ color: 0x4b5158 })
+            new THREE.MeshLambertMaterial({ color: 0x4b5158, map: createAsphaltTexture() })
         );
         plane.rotation.x = -Math.PI / 2;
         scene.add(plane);
@@ -297,6 +380,50 @@
             });
         }
 
+        function addGuardRails() {
+            const railMat = new THREE.MeshLambertMaterial({ color: 0xcbd5e1 });
+            const postMat = new THREE.MeshLambertMaterial({ color: 0x64748b });
+            for (let z = -92; z < 36; z += 8) {
+                [-9.4, 9.4].forEach(x => {
+                    const post = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.72, 0.16), postMat);
+                    post.position.set(x, 0.36, z);
+                    scene.add(post);
+                    sceneryObjects.push(post);
+                });
+            }
+            for (let z = -92; z < 36; z += 16) {
+                [-9.4, 9.4].forEach(x => {
+                    const rail = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.18, 12), railMat);
+                    rail.position.set(x, 0.78, z + 4);
+                    scene.add(rail);
+                    sceneryObjects.push(rail);
+                });
+            }
+        }
+
+        function addStreetLights() {
+            const poleMat = new THREE.MeshLambertMaterial({ color: 0x334155 });
+            const lampMat = new THREE.MeshLambertMaterial({ color: 0xfff3b0, emissive: 0xffd166, emissiveIntensity: 0.22 });
+            for (let z = -84; z < 28; z += 18) {
+                [-8.2, 8.2].forEach((x, side) => {
+                    const light = new THREE.Group();
+                    const pole = new THREE.Mesh(new THREE.BoxGeometry(0.12, 3.4, 0.12), poleMat);
+                    pole.position.y = 1.7;
+                    const arm = new THREE.Mesh(new THREE.BoxGeometry(1.05, 0.1, 0.1), poleMat);
+                    arm.position.set(side === 0 ? 0.44 : -0.44, 3.25, 0);
+                    const lamp = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.14, 0.28), lampMat);
+                    lamp.position.set(side === 0 ? 0.98 : -0.98, 3.18, 0);
+                    light.add(pole, arm, lamp);
+                    light.position.set(x, 0, z);
+                    scene.add(light);
+                    sceneryObjects.push(light);
+                });
+            }
+        }
+
+        addGuardRails();
+        addStreetLights();
+
         function makeSign(color, textColor, x, z, label) {
             const sign = new THREE.Group();
             const postMat = new THREE.MeshLambertMaterial({ color: 0x2d3542 });
@@ -319,6 +446,153 @@
             makeSign(0x23d5ff, 0xffffff, -13, z, 'boost');
             makeSign(0xffd166, 0x222222, 13, z - 10, 'item');
         }
+
+        function addThemeBox(color, size, position) {
+            const mesh = new THREE.Mesh(
+                new THREE.BoxGeometry(size[0], size[1], size[2]),
+                new THREE.MeshLambertMaterial({ color })
+            );
+            mesh.position.set(position[0], position[1], position[2]);
+            scene.add(mesh);
+            sceneryObjects.push(mesh);
+            return mesh;
+        }
+
+        function addThemeSideRows(color, sideX, count, startZ, gap, heightRange) {
+            for (let i = 0; i < count; i += 1) {
+                const height = heightRange[0] + Math.random() * (heightRange[1] - heightRange[0]);
+                addThemeBox(color, [1.2, height, 1.2], [sideX, height / 2, startZ - i * gap]);
+            }
+        }
+
+        function addThemeWater(x) {
+            const water = new THREE.Mesh(
+                new THREE.PlaneGeometry(12, 1000),
+                new THREE.MeshLambertMaterial({ color: 0x0ea5e9, transparent: true, opacity: 0.75 })
+            );
+            water.rotation.x = -Math.PI / 2;
+            water.position.set(x, 0.015, -80);
+            scene.add(water);
+            sceneryObjects.push(water);
+        }
+
+        function addCitySkyline() {
+            const glassMats = [
+                new THREE.MeshLambertMaterial({ color: 0xe2e8f0 }),
+                new THREE.MeshLambertMaterial({ color: 0xbfdbfe }),
+                new THREE.MeshLambertMaterial({ color: 0x94a3b8 })
+            ];
+            for (let i = 0; i < 16; i += 1) {
+                const height = 3.5 + (i % 5) * 1.15;
+                const x = i % 2 === 0 ? -22 - (i % 4) * 2 : 22 + (i % 4) * 2;
+                const z = -42 - i * 10;
+                const tower = new THREE.Mesh(
+                    new THREE.BoxGeometry(2.2, height, 2.4),
+                    glassMats[i % glassMats.length]
+                );
+                tower.position.set(x, height / 2, z);
+                scene.add(tower);
+
+                const windowMat = new THREE.MeshLambertMaterial({ color: 0xfff7c2, emissive: 0xffd166, emissiveIntensity: 0.08 });
+                for (let row = 0; row < Math.floor(height); row += 1) {
+                    const windowBand = new THREE.Mesh(new THREE.BoxGeometry(2.24, 0.06, 0.04), windowMat);
+                    windowBand.position.set(x, 0.9 + row * 0.8, z - 1.23);
+                    scene.add(windowBand);
+                }
+            }
+        }
+
+        function addMountainBackdrop(baseColor, snowColor = null) {
+            for (let i = 0; i < 14; i += 1) {
+                const height = 5 + Math.random() * 5;
+                const width = 5 + Math.random() * 4;
+                const x = (i % 2 === 0 ? -1 : 1) * (18 + Math.random() * 11);
+                const z = -36 - i * 11;
+                const mountain = new THREE.Mesh(
+                    new THREE.ConeGeometry(width, height, 4),
+                    new THREE.MeshLambertMaterial({ color: baseColor })
+                );
+                mountain.rotation.y = Math.PI / 4;
+                mountain.position.set(x, height / 2 - 0.2, z);
+                scene.add(mountain);
+
+                if (snowColor) {
+                    const cap = new THREE.Mesh(
+                        new THREE.ConeGeometry(width * 0.38, height * 0.28, 4),
+                        new THREE.MeshLambertMaterial({ color: snowColor })
+                    );
+                    cap.rotation.y = Math.PI / 4;
+                    cap.position.set(x, height * 0.82, z);
+                    scene.add(cap);
+                }
+            }
+        }
+
+        function addValleyRocks() {
+            const rockMat = new THREE.MeshLambertMaterial({ color: 0x78716c });
+            for (let i = 0; i < 24; i += 1) {
+                const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(0.8 + Math.random() * 1.2, 0), rockMat);
+                rock.scale.y = 0.55 + Math.random() * 0.9;
+                rock.position.set(i % 2 === 0 ? -14 - Math.random() * 5 : 14 + Math.random() * 5, 0.45, -8 - i * 7);
+                rock.rotation.set(Math.random(), Math.random(), Math.random());
+                scene.add(rock);
+                sceneryObjects.push(rock);
+            }
+        }
+
+        function applyMapTheme(theme) {
+            if (theme === 'busan') {
+                scene.background = new THREE.Color(0x80d8ff);
+                scene.fog = new THREE.Fog(0x80d8ff, 14, 72);
+                renderer.setClearColor(0x80d8ff, 1);
+                plane.material.color.setHex(0x4b5563);
+                grassMat.color.setHex(0x7dd3fc);
+                addThemeWater(-18);
+                addThemeWater(18);
+                addCitySkyline();
+                for (let i = 0; i < 10; i += 1) {
+                    addThemeBox(0xf8fafc, [1.8, 3 + (i % 4), 1.4], [-12, 1.5 + (i % 4) / 2, -12 - i * 16]);
+                    addThemeBox(0xdbeafe, [1.8, 2 + (i % 3), 1.4], [12, 1 + (i % 3) / 2, -20 - i * 16]);
+                }
+                return;
+            }
+
+            if (theme === 'mountain') {
+                scene.background = new THREE.Color(0xbfe3c0);
+                scene.fog = new THREE.Fog(0xbfe3c0, 12, 64);
+                renderer.setClearColor(0xbfe3c0, 1);
+                plane.material.color.setHex(0x475569);
+                grassMat.color.setHex(0x22c55e);
+                addMountainBackdrop(0x475569, 0xf8fafc);
+                addThemeSideRows(0x166534, -11, 22, -8, 9, [2.4, 5.8]);
+                addThemeSideRows(0x15803d, 11, 22, -12, 9, [2.4, 5.8]);
+                for (let i = 0; i < 8; i += 1) {
+                    addThemeBox(0x64748b, [4, 3 + i % 3, 3], [-17, 1.5, -18 - i * 24]);
+                    addThemeBox(0x475569, [4, 3 + (i + 1) % 3, 3], [17, 1.5, -30 - i * 24]);
+                }
+                return;
+            }
+
+            scene.background = new THREE.Color(0xc7f9cc);
+            scene.fog = new THREE.Fog(0xc7f9cc, 10, 58);
+            renderer.setClearColor(0xc7f9cc, 1);
+            plane.material.color.setHex(0x3f3f46);
+            grassMat.color.setHex(0x16a34a);
+            addMountainBackdrop(0x166534);
+            addValleyRocks();
+            const stream = new THREE.Mesh(
+                new THREE.PlaneGeometry(5, 1000),
+                new THREE.MeshLambertMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.72 })
+            );
+            stream.rotation.x = -Math.PI / 2;
+            stream.position.set(-13, 0.02, -80);
+            scene.add(stream);
+            sceneryObjects.push(stream);
+            addThemeSideRows(0x22c55e, -8, 28, -8, 7, [1.4, 3.2]);
+            addThemeSideRows(0x16a34a, 9, 28, -10, 7, [1.4, 3.2]);
+        }
+
+        applyMapTheme(selectedTheme);
 
         function buildCyberPilot() {
             const pilot = new THREE.Group();
@@ -751,6 +1025,11 @@
         let sessionId = null;
         let toastTimer = null;
         let lastGameOverWasRecord = false;
+        let jumpCharges = 0;
+        let jumpUntil = 0;
+        let eggBuffer = '';
+        let rainbowUntil = 0;
+        let eggSpinUntil = 0;
         const fireworks = [];
         const taunts = {
             tiny: [
@@ -822,6 +1101,12 @@
                 desc: '3초 동안 좌우 조작이 뒤집혀요',
                 className: 'confuse',
                 color: 0xae5bff
+            },
+            jump: {
+                title: '점프 충전!',
+                desc: '스페이스바를 누르면 몇 초 동안 장애물을 뛰어넘어요.',
+                className: 'jump',
+                color: 0x22c55e
             }
         };
 
@@ -837,9 +1122,42 @@
             }, 1700);
         }
 
+        function showCustomToast(title, desc, className = 'jump') {
+            const toast = document.getElementById('item-toast');
+            document.getElementById('item-toast-title').innerText = title;
+            document.getElementById('item-toast-desc').innerText = desc;
+            toast.className = `${className} show`;
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toast.className = className;
+            }, 1700);
+        }
+
         function createItemMesh(type) {
             const info = itemInfo[type];
             const group = new THREE.Group();
+            if (type === 'jump') {
+                const base = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.8, 0.8, 0.25, 24),
+                    new THREE.MeshLambertMaterial({ color: 0x16a34a, transparent: true, opacity: 0.82 })
+                );
+                base.position.y = 0.14;
+                const core = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.9, 0.9, 0.9),
+                    new THREE.MeshLambertMaterial({ color: 0x22c55e, emissive: 0x22c55e, emissiveIntensity: 0.28 })
+                );
+                core.position.y = 0.75;
+                core.rotation.y = Math.PI / 4;
+                const glow = new THREE.Mesh(
+                    new THREE.BoxGeometry(1.16, 1.16, 1.16),
+                    new THREE.MeshLambertMaterial({ color: 0x86efac, transparent: true, opacity: 0.32 })
+                );
+                glow.position.y = 0.75;
+                glow.rotation.y = Math.PI / 4;
+                group.add(base, core, glow);
+                group.userData = { type, isItem: true };
+                return group;
+            }
             const core = new THREE.Mesh(
                 new THREE.IcosahedronGeometry(0.58, 0),
                 new THREE.MeshLambertMaterial({ color: info.color, emissive: info.color, emissiveIntensity: 0.28 })
@@ -857,6 +1175,75 @@
             group.add(core, ring, halo);
             group.userData = { type, isItem: true };
             return group;
+        }
+
+        function chargeJump() {
+            jumpCharges = Math.min(maxJumpCharges, jumpCharges + 1);
+            showCustomToast('점프 충전!', `스페이스바로 사용하세요. ${jumpCharges}/${maxJumpCharges}`, 'jump');
+        }
+
+        function startJump() {
+            if (Date.now() < jumpUntil) {
+                showCustomToast('이미 점프 중!', '착지한 뒤 다시 점프할 수 있어요.', 'jump');
+                return;
+            }
+            if (jumpCharges <= 0) {
+                showCustomToast('점프 없음', '초록 박스를 먹으면 점프가 충전돼요.', 'jump');
+                return;
+            }
+            jumpCharges -= 1;
+            jumpUntil = Date.now() + jumpDurationMs;
+            showCustomToast('점프!', `${Math.ceil(jumpDurationMs / 1000)}초 동안 장애물을 넘어요.`, 'jump');
+        }
+
+        function updateJumpState() {
+            const jumping = Date.now() < jumpUntil;
+            const lift = jumping ? 1.8 + Math.sin(Date.now() / 90) * 0.18 : 0;
+            car.position.y = 0.33 + lift;
+        }
+
+        function activateEasterEgg(code) {
+            const now = Date.now();
+            if (code === 'RAINBOW') {
+                rainbowUntil = now + 12000;
+                showCustomToast('RAINBOW MODE', '색감이 잠깐 미쳐 날뜁니다.', 'firework');
+            }
+            if (code === 'JJUMP') {
+                jumpCharges = Math.min(maxJumpCharges, jumpCharges + 1);
+                jumpUntil = Math.max(jumpUntil, now + 10000);
+                showCustomToast('SUPER JUMP', '비밀 점프가 발동됐어요.', 'jump');
+            }
+            if (code === 'BOSAN') {
+                eggSpinUntil = now + 5000;
+                showCustomToast('BUSAN DRIFT', '부산 바다 드리프트!', 'firework');
+            }
+        }
+
+        function handleEasterEggKey(key) {
+            if (!/^[a-z]$/i.test(key)) return;
+            eggBuffer = (eggBuffer + key.toUpperCase()).slice(-12);
+            ['RAINBOW', 'JJUMP', 'BOSAN'].forEach(code => {
+                if (eggBuffer.endsWith(code)) {
+                    activateEasterEgg(code);
+                    eggBuffer = '';
+                }
+            });
+        }
+
+        function updateEasterEggs() {
+            const now = Date.now();
+            if (rainbowUntil > now) {
+                const hue = (now / 18) % 360;
+                document.body.style.filter = `hue-rotate(${hue}deg) saturate(1.35)`;
+            } else {
+                document.body.style.filter = '';
+            }
+
+            if (eggSpinUntil > now) {
+                car.rotation.y = Math.sin(now / 120) * 0.28;
+            } else {
+                car.rotation.y *= 0.86;
+            }
         }
 
         function createFireworkBurst(x, y, z) {
@@ -924,6 +1311,11 @@
                     isConfused = false;
                     document.getElementById('status-msg').style.display = 'none';
                 }, 3000);
+                return;
+            }
+
+            if (type === 'jump') {
+                chargeJump();
             }
         }
 
@@ -979,6 +1371,12 @@
         const forwardSpeed = 0.16;
 
         document.addEventListener('keydown', (e) => {
+            handleEasterEggKey(e.key);
+            if (e.code === 'Space') {
+                e.preventDefault();
+                startJump();
+                return;
+            }
             const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
             if (keys.hasOwnProperty(key)) {
                 keys[key] = true;
@@ -1031,6 +1429,8 @@
                 obstacle = createItemMesh('firework');
             } else if (rand < 0.28) {
                 obstacle = createItemMesh('confuse');
+            } else if (rand < 0.40) {
+                obstacle = createItemMesh('jump');
             } else {
                 obstacle = new THREE.Mesh(
                     new THREE.BoxGeometry(2, 1, 2),
@@ -1038,7 +1438,7 @@
                 );
             }
 
-            if (rand >= 0.28 && rand < 0.46) {
+            if (rand >= 0.40 && rand < 0.70) {
                 obstacle.material.color.setHex(0x800080);
                 obstacle.userData = { type: 'guided' };
             } else if (!obstacle.userData.type) {
@@ -1079,9 +1479,12 @@
 
             document.getElementById('score').innerText = displayScore;
             document.getElementById('ui-speed').innerText = Math.min(speedLevel, 99);
+            document.getElementById('ui-jump').innerText = `${jumpCharges}/${maxJumpCharges}`;
             speed += 0.0001;
             updateScenery();
             updateFireworks();
+            updateJumpState();
+            updateEasterEggs();
 
             for (let i = 0; i < obstacles.length; i++) {
                 const obs = obstacles[i];
@@ -1098,10 +1501,16 @@
                 }
 
                 if (Math.abs(car.position.x - obs.position.x) < 2 && Math.abs(car.position.z - obs.position.z) < 3) {
+                    const isJumping = Date.now() < jumpUntil;
                     if (obs.userData.isItem) {
+                        if (isJumping) continue;
                         const hitPosition = obs.position.clone();
                         scene.remove(obs); obstacles.splice(i, 1); i--;
                         applyItemEffect(obs.userData.type, hitPosition);
+                        continue;
+                    } else if (isJumping) {
+                        createFireworkBurst(obs.position.x, 1.6, obs.position.z);
+                        scene.remove(obs); obstacles.splice(i, 1); i--;
                         continue;
                     } else {
                         triggerGameOver();

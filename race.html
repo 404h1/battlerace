@@ -677,6 +677,8 @@
             const black = new THREE.MeshLambertMaterial({ color: 0x111111 });
             const white = new THREE.MeshLambertMaterial({ color: 0xffffff });
             const chrome = new THREE.MeshLambertMaterial({ color: 0xf8fafc });
+            const lip = new THREE.MeshLambertMaterial({ color: 0xe11d48 });
+            const blush = new THREE.MeshLambertMaterial({ color: 0xff9fb5, transparent: true, opacity: 0.74 });
 
             const hips = new THREE.Mesh(new THREE.SphereGeometry(0.2, 12, 10), suitDark);
             hips.scale.set(1.65, 0.86, 0.92);
@@ -718,6 +720,11 @@
             head.position.set(0, 0.98, -0.04);
             racer.add(head);
 
+            const jaw = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 10), skin);
+            jaw.scale.set(0.95, 0.55, 0.72);
+            jaw.position.set(0, 0.83, -0.06);
+            racer.add(jaw);
+
             const hairCap = new THREE.Mesh(new THREE.SphereGeometry(0.28, 14, 12), blonde);
             hairCap.scale.set(1.22, 0.72, 1.02);
             hairCap.position.set(0, 1.11, -0.01);
@@ -742,31 +749,76 @@
             hairSweep.rotation.z = -0.2;
             racer.add(hairSweep);
 
+            [-0.24, 0.24].forEach(x => {
+                const ear = new THREE.Mesh(new THREE.SphereGeometry(0.055, 8, 8), skin);
+                ear.scale.set(0.58, 1, 0.38);
+                ear.position.set(x, 0.98, -0.02);
+                racer.add(ear);
+            });
+
             [-0.1, 0.1].forEach(x => {
                 const lens = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.075, 0.035), black);
                 lens.position.set(x, 0.99, -0.23);
                 racer.add(lens);
             });
 
-            const smile = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.026, 0.035), white);
-            smile.position.set(0, 0.88, -0.23);
-            racer.add(smile);
+            const bridge = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.03, 0.035), black);
+            bridge.position.set(0, 0.99, -0.23);
+            racer.add(bridge);
+
+            const nose = new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 8), skin);
+            nose.scale.set(0.7, 0.82, 1.1);
+            nose.position.set(0, 0.93, -0.265);
+            racer.add(nose);
+
+            [-0.11, 0.11].forEach(x => {
+                const cheek = new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 8), blush);
+                cheek.scale.set(1.1, 0.45, 0.25);
+                cheek.position.set(x, 0.89, -0.265);
+                racer.add(cheek);
+            });
+
+            const mouth = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.026, 0.035), lip);
+            mouth.position.set(0, 0.84, -0.265);
+            racer.add(mouth);
 
             [-0.32, 0.32].forEach((x, side) => {
-                const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.043, 0.055, 0.54, 10), skin);
-                arm.position.set(x, 0.43, -0.05);
-                arm.rotation.z = side === 0 ? -0.42 : 0.42;
-                racer.add(arm);
+                const dir = side === 0 ? -1 : 1;
+                const upperArm = new THREE.Mesh(new THREE.CylinderGeometry(0.048, 0.058, 0.34, 10), skin);
+                upperArm.position.set(x, 0.47, -0.04);
+                upperArm.rotation.z = dir * 0.68;
+                racer.add(upperArm);
 
-                const glove = new THREE.Mesh(new THREE.SphereGeometry(0.065, 8, 8), white);
-                glove.position.set(side === 0 ? -0.42 : 0.42, 0.24, -0.13);
-                racer.add(glove);
+                const elbow = new THREE.Mesh(new THREE.SphereGeometry(0.055, 8, 8), skin);
+                elbow.position.set(dir * 0.41, 0.35, -0.08);
+                racer.add(elbow);
+
+                const forearm = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.048, 0.32, 10), skin);
+                forearm.position.set(dir * 0.43, 0.23, -0.15);
+                forearm.rotation.set(0.35, 0, dir * -0.15);
+                racer.add(forearm);
+
+                const hand = new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 8), skin);
+                hand.scale.set(1.1, 0.72, 0.58);
+                hand.position.set(dir * 0.44, 0.08, -0.2);
+                racer.add(hand);
+
+                [-0.035, 0, 0.035].forEach(offset => {
+                    const finger = new THREE.Mesh(new THREE.CylinderGeometry(0.009, 0.012, 0.12, 6), skin);
+                    finger.position.set(dir * (0.46 + offset), 0.015, -0.24);
+                    finger.rotation.x = 1.12;
+                    racer.add(finger);
+                });
             });
 
             const leftThigh = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.08, 0.52, 10), suitDark);
             leftThigh.position.set(-0.12, -0.13, -0.03);
             leftThigh.rotation.set(1.18, 0, -0.92);
             racer.add(leftThigh);
+
+            const leftKnee = new THREE.Mesh(new THREE.SphereGeometry(0.072, 8, 8), suitDark);
+            leftKnee.position.set(0.09, -0.21, -0.12);
+            racer.add(leftKnee);
 
             const leftCalf = new THREE.Mesh(new THREE.CylinderGeometry(0.052, 0.065, 0.5, 10), suitDark);
             leftCalf.position.set(0.18, -0.23, -0.12);
@@ -777,6 +829,10 @@
             rightThigh.position.set(0.13, -0.15, -0.01);
             rightThigh.rotation.set(1.1, 0, 0.84);
             racer.add(rightThigh);
+
+            const rightKnee = new THREE.Mesh(new THREE.SphereGeometry(0.072, 8, 8), suitDark);
+            rightKnee.position.set(-0.09, -0.23, -0.12);
+            racer.add(rightKnee);
 
             const rightCalf = new THREE.Mesh(new THREE.CylinderGeometry(0.052, 0.065, 0.5, 10), suitDark);
             rightCalf.position.set(-0.18, -0.26, -0.13);

@@ -82,6 +82,12 @@ CREATE TABLE scores (
 
 ---
 
+## 게임 플레이
+
+![gameplay](docs/gameplay.gif)
+
+---
+
 ## Supabase 현황
 
 배포 직후 24시간 동안 **24,332건**의 DB 요청 발생

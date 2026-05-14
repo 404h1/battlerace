@@ -84,6 +84,8 @@ CREATE TABLE scores (
 
 ## Supabase 현황
 
+배포 직후 24시간 동안 **24,332건**의 DB 요청 발생
+
 ![Supabase Stats](docs/supabase-stats.png)
 
 ---

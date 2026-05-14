@@ -359,53 +359,93 @@
         }
 
         function buildPinkRacerPersona() {
-            const doll = new THREE.Group();
-            const skin = new THREE.MeshLambertMaterial({ color: 0xffd3b6 });
-            const hair = new THREE.MeshLambertMaterial({ color: 0xffe066 });
-            const outfit = new THREE.MeshLambertMaterial({ color: 0xff4fa3, emissive: 0xff4fa3, emissiveIntensity: 0.12 });
-            const glasses = new THREE.MeshLambertMaterial({ color: 0x111111 });
+            const racer = new THREE.Group();
+            const skin = new THREE.MeshLambertMaterial({ color: 0xffc7a5 });
+            const blonde = new THREE.MeshLambertMaterial({ color: 0xffdf58, emissive: 0xffc94a, emissiveIntensity: 0.08 });
+            const suit = new THREE.MeshLambertMaterial({ color: 0xff2f92, emissive: 0xff2f92, emissiveIntensity: 0.16 });
+            const suitDark = new THREE.MeshLambertMaterial({ color: 0x8f1458 });
+            const black = new THREE.MeshLambertMaterial({ color: 0x111111 });
             const white = new THREE.MeshLambertMaterial({ color: 0xffffff });
 
-            const body = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.48, 0.28), outfit);
-            body.position.y = 0.2;
-            doll.add(body);
+            const hips = new THREE.Mesh(new THREE.SphereGeometry(0.2, 12, 10), suitDark);
+            hips.scale.set(1.35, 0.75, 0.85);
+            hips.position.set(0, 0.08, 0.02);
+            racer.add(hips);
 
-            const head = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.38, 0.36), skin);
-            head.position.set(0, 0.63, -0.02);
-            doll.add(head);
+            const torso = new THREE.Mesh(new THREE.SphereGeometry(0.28, 14, 12), suit);
+            torso.scale.set(0.86, 1.32, 0.66);
+            torso.position.set(0, 0.42, -0.02);
+            racer.add(torso);
 
-            const hairCap = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.16, 0.4), hair);
-            hairCap.position.set(0, 0.82, -0.01);
-            doll.add(hairCap);
+            const belt = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.06, 0.28), black);
+            belt.position.set(0, 0.2, -0.02);
+            racer.add(belt);
 
-            const ponytail = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.34, 0.2), hair);
-            ponytail.position.set(0.31, 0.62, 0.08);
-            ponytail.rotation.z = -0.22;
-            doll.add(ponytail);
+            const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.09, 0.16, 10), skin);
+            neck.position.set(0, 0.75, -0.02);
+            racer.add(neck);
 
-            [-0.11, 0.11].forEach(x => {
-                const lens = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.08, 0.04), glasses);
-                lens.position.set(x, 0.64, -0.22);
-                doll.add(lens);
+            const head = new THREE.Mesh(new THREE.SphereGeometry(0.25, 16, 14), skin);
+            head.scale.set(0.9, 1.05, 0.86);
+            head.position.set(0, 0.98, -0.04);
+            racer.add(head);
+
+            const hairCap = new THREE.Mesh(new THREE.SphereGeometry(0.28, 14, 12), blonde);
+            hairCap.scale.set(1.05, 0.66, 0.95);
+            hairCap.position.set(0, 1.1, -0.01);
+            racer.add(hairCap);
+
+            [-0.22, 0.22].forEach((x, i) => {
+                const curl = new THREE.Mesh(new THREE.SphereGeometry(0.13, 10, 8), blonde);
+                curl.scale.set(0.75, 1.55, 0.65);
+                curl.position.set(x, 0.88 - i * 0.03, 0.05);
+                racer.add(curl);
             });
 
-            const smile = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.035, 0.04), white);
-            smile.position.set(0, 0.54, -0.22);
-            doll.add(smile);
+            const ponytail = new THREE.Mesh(new THREE.SphereGeometry(0.14, 10, 8), blonde);
+            ponytail.scale.set(0.85, 1.9, 0.72);
+            ponytail.position.set(0.28, 0.88, 0.12);
+            ponytail.rotation.z = -0.38;
+            racer.add(ponytail);
 
-            const bowLeft = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.12, 0.08), outfit);
-            bowLeft.position.set(-0.13, 0.96, -0.02);
-            bowLeft.rotation.z = 0.28;
-            doll.add(bowLeft);
-            const bowRight = bowLeft.clone();
-            bowRight.position.x = 0.13;
-            bowRight.rotation.z = -0.28;
-            doll.add(bowRight);
+            [-0.1, 0.1].forEach(x => {
+                const lens = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.075, 0.035), black);
+                lens.position.set(x, 0.99, -0.23);
+                racer.add(lens);
+            });
 
-            doll.scale.set(1.18, 1.18, 1.18);
-            doll.position.set(0, 0.84, -0.18);
-            doll.rotation.x = -0.1;
-            return doll;
+            const smile = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.026, 0.035), white);
+            smile.position.set(0, 0.88, -0.23);
+            racer.add(smile);
+
+            [-0.32, 0.32].forEach((x, side) => {
+                const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.055, 0.48, 10), skin);
+                arm.position.set(x, 0.42, -0.04);
+                arm.rotation.z = side === 0 ? -0.42 : 0.42;
+                racer.add(arm);
+
+                const glove = new THREE.Mesh(new THREE.SphereGeometry(0.065, 8, 8), white);
+                glove.position.set(side === 0 ? -0.42 : 0.42, 0.24, -0.13);
+                racer.add(glove);
+
+                const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.46, 10), suitDark);
+                leg.position.set(side === 0 ? -0.12 : 0.12, -0.16, -0.02);
+                leg.rotation.x = 0.18;
+                racer.add(leg);
+
+                const boot = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.08, 0.18), black);
+                boot.position.set(side === 0 ? -0.12 : 0.12, -0.4, -0.1);
+                racer.add(boot);
+            });
+
+            const chestStripe = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.55, 0.035), white);
+            chestStripe.position.set(0, 0.46, -0.22);
+            racer.add(chestStripe);
+
+            racer.scale.set(1.05, 1.05, 1.05);
+            racer.position.set(0, 0.9, -0.24);
+            racer.rotation.x = -0.08;
+            return racer;
         }
 
         function buildCybertruck() {

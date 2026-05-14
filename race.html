@@ -829,20 +829,20 @@
                 return limb;
             };
 
-            // Crossed seated legs: upper leg lays across the lap, lower leg tucks underneath.
-            addLimb([-0.23, -0.06, -0.06], [0.24, -0.14, -0.16], 0.09, skin);
-            addLimb([0.24, -0.14, -0.16], [0.52, -0.36, -0.2], 0.066, skin);
-            addLimb([0.18, -0.1, 0.02], [-0.2, -0.25, -0.13], 0.083, skin);
-            addLimb([-0.2, -0.25, -0.13], [-0.48, -0.42, -0.2], 0.062, skin);
+            // Side-view crossed legs: one thigh sits across the lap while the lower leg drops forward.
+            addLimb([-0.26, -0.06, -0.02], [0.26, -0.08, -0.03], 0.092, skin);
+            addLimb([0.26, -0.08, -0.03], [0.46, -0.42, -0.22], 0.066, skin);
+            addLimb([-0.1, -0.12, 0.07], [-0.42, -0.24, -0.04], 0.083, skin);
+            addLimb([-0.42, -0.24, -0.04], [-0.58, -0.5, -0.24], 0.062, skin);
 
-            [[0.24, -0.14, -0.16], [-0.2, -0.25, -0.13]].forEach(([x, y, z]) => {
+            [[0.26, -0.08, -0.03], [-0.42, -0.24, -0.04]].forEach(([x, y, z]) => {
                 const knee = new THREE.Mesh(new THREE.SphereGeometry(0.075, 10, 8), skin);
                 knee.scale.set(1.08, 0.86, 0.92);
                 knee.position.set(x, y, z);
                 racer.add(knee);
             });
 
-            [[0.54, -0.38, -0.22, 0.22], [-0.5, -0.43, -0.22, -0.22]].forEach(([x, y, z, rz]) => {
+            [[0.48, -0.45, -0.26, 0.14], [-0.6, -0.52, -0.27, -0.18]].forEach(([x, y, z, rz]) => {
                 const boot = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.09, 0.18), black);
                 boot.position.set(x, y, z);
                 boot.rotation.z = rz;
@@ -866,8 +866,8 @@
             racer.add(hipAccent);
 
             racer.scale.set(1.12, 1.12, 1.12);
-            racer.position.set(0, 0.96, -0.24);
-            racer.rotation.x = -0.08;
+            racer.position.set(-0.08, 0.96, -0.2);
+            racer.rotation.set(-0.08, -0.78, 0.03);
             return racer;
         }
 

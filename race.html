@@ -871,6 +871,172 @@
             return racer;
         }
 
+        function pickPersona(builders) {
+            return builders[Math.floor(Math.random() * builders.length)]();
+        }
+
+        function buildCuteCyberPersona() {
+            const p = new THREE.Group();
+            const mint = new THREE.MeshLambertMaterial({ color: 0x7dd3fc, emissive: 0x38bdf8, emissiveIntensity: 0.18 });
+            const face = new THREE.MeshLambertMaterial({ color: 0xffffff });
+            const dark = new THREE.MeshLambertMaterial({ color: 0x111827 });
+            const pink = new THREE.MeshLambertMaterial({ color: 0xfb7185, emissive: 0xfb7185, emissiveIntensity: 0.12 });
+
+            const body = new THREE.Mesh(new THREE.SphereGeometry(0.24, 14, 12), mint);
+            body.scale.set(0.9, 1.25, 0.7);
+            body.position.y = 0.3;
+            p.add(body);
+
+            const head = new THREE.Mesh(new THREE.SphereGeometry(0.25, 14, 12), face);
+            head.scale.set(1, 0.9, 0.85);
+            head.position.set(0, 0.72, -0.02);
+            p.add(head);
+
+            [-0.1, 0.1].forEach(x => {
+                const eye = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 8), dark);
+                eye.position.set(x, 0.73, -0.22);
+                p.add(eye);
+            });
+
+            [-0.15, 0.15].forEach(x => {
+                const ear = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.18, 0.08), mint);
+                ear.position.set(x, 0.95, -0.01);
+                ear.rotation.z = x < 0 ? -0.34 : 0.34;
+                p.add(ear);
+            });
+
+            const heart = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.13, 0.04), pink);
+            heart.position.set(0, 0.28, -0.2);
+            p.add(heart);
+
+            p.scale.set(1.12, 1.12, 1.12);
+            p.position.set(0, 1.12, -0.55);
+            return p;
+        }
+
+        function buildCoolCyberPersona() {
+            const p = new THREE.Group();
+            const coat = new THREE.MeshLambertMaterial({ color: 0x0f172a });
+            const chrome = new THREE.MeshLambertMaterial({ color: 0xcbd5e1 });
+            const visor = new THREE.MeshLambertMaterial({ color: 0x22d3ee, emissive: 0x22d3ee, emissiveIntensity: 0.45 });
+            const red = new THREE.MeshLambertMaterial({ color: 0xef4444, emissive: 0xef4444, emissiveIntensity: 0.22 });
+
+            const torso = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.62, 0.28), coat);
+            torso.position.y = 0.28;
+            p.add(torso);
+
+            const head = new THREE.Mesh(new THREE.SphereGeometry(0.23, 14, 12), chrome);
+            head.scale.set(0.92, 1, 0.86);
+            head.position.set(0, 0.78, -0.02);
+            p.add(head);
+
+            const glasses = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.09, 0.04), visor);
+            glasses.position.set(0, 0.79, -0.22);
+            p.add(glasses);
+
+            const collar = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.12, 0.18), red);
+            collar.position.set(0, 0.54, -0.02);
+            p.add(collar);
+
+            [-0.32, 0.32].forEach((x, side) => {
+                const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.055, 0.5, 10), coat);
+                arm.position.set(x, 0.27, -0.06);
+                arm.rotation.z = side === 0 ? -0.52 : 0.52;
+                p.add(arm);
+            });
+
+            p.position.set(0, 1.1, -0.56);
+            p.rotation.x = -0.06;
+            return p;
+        }
+
+        function buildCutePinkPersona() {
+            const p = new THREE.Group();
+            const skin = new THREE.MeshLambertMaterial({ color: 0xffd0b5 });
+            const pink = new THREE.MeshLambertMaterial({ color: 0xff8fab, emissive: 0xff8fab, emissiveIntensity: 0.12 });
+            const hair = new THREE.MeshLambertMaterial({ color: 0xfff1a8 });
+            const dark = new THREE.MeshLambertMaterial({ color: 0x111111 });
+            const white = new THREE.MeshLambertMaterial({ color: 0xffffff });
+
+            const body = new THREE.Mesh(new THREE.SphereGeometry(0.22, 12, 10), pink);
+            body.scale.set(1.1, 1.12, 0.72);
+            body.position.y = 0.28;
+            p.add(body);
+
+            const head = new THREE.Mesh(new THREE.SphereGeometry(0.22, 14, 12), skin);
+            head.position.set(0, 0.72, -0.03);
+            p.add(head);
+
+            const hairCap = new THREE.Mesh(new THREE.SphereGeometry(0.24, 12, 10), hair);
+            hairCap.scale.set(1.15, 0.65, 0.95);
+            hairCap.position.set(0, 0.85, -0.01);
+            p.add(hairCap);
+
+            [-0.11, 0.11].forEach(x => {
+                const eye = new THREE.Mesh(new THREE.SphereGeometry(0.03, 8, 8), dark);
+                eye.position.set(x, 0.72, -0.2);
+                p.add(eye);
+            });
+
+            const smile = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.025, 0.035), white);
+            smile.position.set(0, 0.62, -0.21);
+            p.add(smile);
+
+            [-0.13, 0.13].forEach(x => {
+                const bow = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.11, 0.07), pink);
+                bow.position.set(x, 1.02, -0.02);
+                bow.rotation.z = x < 0 ? 0.32 : -0.32;
+                p.add(bow);
+            });
+
+            p.scale.set(1.12, 1.12, 1.12);
+            p.position.set(0, 0.92, -0.22);
+            p.rotation.x = -0.08;
+            return p;
+        }
+
+        function buildCoolPinkPersona() {
+            const p = new THREE.Group();
+            const skin = new THREE.MeshLambertMaterial({ color: 0xffc7a5 });
+            const suit = new THREE.MeshLambertMaterial({ color: 0x111827 });
+            const magenta = new THREE.MeshLambertMaterial({ color: 0xec4899, emissive: 0xec4899, emissiveIntensity: 0.18 });
+            const hair = new THREE.MeshLambertMaterial({ color: 0xfacc15 });
+            const visor = new THREE.MeshLambertMaterial({ color: 0x020617 });
+
+            const torso = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.58, 0.26), suit);
+            torso.position.y = 0.3;
+            p.add(torso);
+
+            const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.58, 0.04), magenta);
+            stripe.position.set(0, 0.3, -0.16);
+            p.add(stripe);
+
+            const head = new THREE.Mesh(new THREE.SphereGeometry(0.23, 14, 12), skin);
+            head.position.set(0, 0.78, -0.03);
+            p.add(head);
+
+            const hairCap = new THREE.Mesh(new THREE.SphereGeometry(0.25, 12, 10), hair);
+            hairCap.scale.set(1.12, 0.62, 0.95);
+            hairCap.position.set(0, 0.9, -0.01);
+            p.add(hairCap);
+
+            const visorMesh = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.09, 0.04), visor);
+            visorMesh.position.set(0, 0.79, -0.22);
+            p.add(visorMesh);
+
+            [-0.32, 0.32].forEach((x, side) => {
+                const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.052, 0.45, 10), skin);
+                arm.position.set(x, 0.32, -0.06);
+                arm.rotation.z = side === 0 ? -0.45 : 0.45;
+                p.add(arm);
+            });
+
+            p.scale.set(1.08, 1.08, 1.08);
+            p.position.set(0, 0.95, -0.22);
+            p.rotation.x = -0.08;
+            return p;
+        }
+
         function buildCybertruck() {
             const g = new THREE.Group();
             const silver = new THREE.MeshLambertMaterial({ color: 0x7A8A92 });
@@ -904,7 +1070,7 @@
                 g.add(w);
             });
 
-            g.add(buildCyberPilot());
+            g.add(pickPersona([buildCyberPilot, buildCuteCyberPersona, buildCoolCyberPersona]));
             g.position.y = 0.33;
             return g;
         }
@@ -992,7 +1158,7 @@
                 g.add(hub);
             });
 
-            g.add(buildPinkRacerPersona());
+            g.add(pickPersona([buildPinkRacerPersona, buildCutePinkPersona, buildCoolPinkPersona]));
             g.position.y = 0.33;
             return g;
         }
@@ -1128,6 +1294,37 @@
             scarf.position.set(-0.18, 0.14, -0.28);
             scarf.rotation.z = -0.18;
             cat.add(scarf);
+
+            const catPersona = Math.floor(Math.random() * 3);
+            if (catPersona === 0) {
+                const crownMat = new THREE.MeshLambertMaterial({ color: 0xffd166, emissive: 0xffd166, emissiveIntensity: 0.16 });
+                const crown = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.12, 0.1), crownMat);
+                crown.position.set(0, 0.78, -0.18);
+                cat.add(crown);
+                [-0.12, 0, 0.12].forEach(x => {
+                    const tip = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.13, 0.08), crownMat);
+                    tip.position.set(x, 0.88, -0.18);
+                    cat.add(tip);
+                });
+            } else if (catPersona === 1) {
+                const glamMat = new THREE.MeshLambertMaterial({ color: 0xff4fa3, emissive: 0xff4fa3, emissiveIntensity: 0.16 });
+                const shades = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.08, 0.055), catBlack);
+                shades.position.set(0, 0.46, -0.47);
+                cat.add(shades);
+                const boa = new THREE.Mesh(new THREE.BoxGeometry(0.64, 0.08, 0.14), glamMat);
+                boa.position.set(0, 0.18, -0.18);
+                boa.rotation.z = -0.12;
+                cat.add(boa);
+            } else {
+                const coolMat = new THREE.MeshLambertMaterial({ color: 0x22d3ee, emissive: 0x22d3ee, emissiveIntensity: 0.22 });
+                const helmet = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.18, 0.42), coolMat);
+                helmet.position.set(0, 0.72, -0.16);
+                cat.add(helmet);
+                const lightning = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.42, 0.06), coolMat);
+                lightning.position.set(0.3, 0.28, -0.22);
+                lightning.rotation.z = -0.45;
+                cat.add(lightning);
+            }
 
             // 수염 (얇은 박스)
             [[-0.22, -0.06], [0.22, -0.06], [-0.24, 0.0], [0.24, 0.0]].forEach(([x, z]) => {

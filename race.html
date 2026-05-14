@@ -658,16 +658,34 @@
             const suitDark = new THREE.MeshLambertMaterial({ color: 0x8f1458 });
             const black = new THREE.MeshLambertMaterial({ color: 0x111111 });
             const white = new THREE.MeshLambertMaterial({ color: 0xffffff });
+            const chrome = new THREE.MeshLambertMaterial({ color: 0xf8fafc });
 
             const hips = new THREE.Mesh(new THREE.SphereGeometry(0.2, 12, 10), suitDark);
-            hips.scale.set(1.35, 0.75, 0.85);
-            hips.position.set(0, 0.08, 0.02);
+            hips.scale.set(1.65, 0.86, 0.92);
+            hips.position.set(0, 0.07, 0.02);
             racer.add(hips);
 
             const torso = new THREE.Mesh(new THREE.SphereGeometry(0.28, 14, 12), suit);
-            torso.scale.set(0.86, 1.32, 0.66);
-            torso.position.set(0, 0.42, -0.02);
+            torso.scale.set(0.8, 1.42, 0.68);
+            torso.position.set(0, 0.47, -0.02);
             racer.add(torso);
+
+            const chest = new THREE.Mesh(new THREE.SphereGeometry(0.18, 12, 10), suit);
+            chest.scale.set(1.75, 0.72, 0.78);
+            chest.position.set(0, 0.63, -0.08);
+            racer.add(chest);
+
+            const waistCut = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.08, 0.34), suitDark);
+            waistCut.position.set(0, 0.27, -0.02);
+            racer.add(waistCut);
+
+            const leftShoulder = new THREE.Mesh(new THREE.SphereGeometry(0.09, 10, 8), suitDark);
+            leftShoulder.scale.set(1.25, 0.8, 0.9);
+            leftShoulder.position.set(-0.29, 0.62, -0.03);
+            racer.add(leftShoulder);
+            const rightShoulder = leftShoulder.clone();
+            rightShoulder.position.x = 0.29;
+            racer.add(rightShoulder);
 
             const belt = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.06, 0.28), black);
             belt.position.set(0, 0.2, -0.02);
@@ -683,22 +701,28 @@
             racer.add(head);
 
             const hairCap = new THREE.Mesh(new THREE.SphereGeometry(0.28, 14, 12), blonde);
-            hairCap.scale.set(1.05, 0.66, 0.95);
-            hairCap.position.set(0, 1.1, -0.01);
+            hairCap.scale.set(1.22, 0.72, 1.02);
+            hairCap.position.set(0, 1.11, -0.01);
             racer.add(hairCap);
 
             [-0.22, 0.22].forEach((x, i) => {
                 const curl = new THREE.Mesh(new THREE.SphereGeometry(0.13, 10, 8), blonde);
-                curl.scale.set(0.75, 1.55, 0.65);
-                curl.position.set(x, 0.88 - i * 0.03, 0.05);
+                curl.scale.set(0.78, 2.0, 0.68);
+                curl.position.set(x, 0.79 - i * 0.03, 0.06);
                 racer.add(curl);
             });
 
             const ponytail = new THREE.Mesh(new THREE.SphereGeometry(0.14, 10, 8), blonde);
-            ponytail.scale.set(0.85, 1.9, 0.72);
-            ponytail.position.set(0.28, 0.88, 0.12);
+            ponytail.scale.set(0.95, 2.45, 0.78);
+            ponytail.position.set(0.32, 0.78, 0.12);
             ponytail.rotation.z = -0.38;
             racer.add(ponytail);
+
+            const hairSweep = new THREE.Mesh(new THREE.SphereGeometry(0.13, 10, 8), blonde);
+            hairSweep.scale.set(1.55, 0.55, 0.58);
+            hairSweep.position.set(-0.08, 1.05, -0.2);
+            hairSweep.rotation.z = -0.2;
+            racer.add(hairSweep);
 
             [-0.1, 0.1].forEach(x => {
                 const lens = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.075, 0.035), black);
@@ -711,8 +735,8 @@
             racer.add(smile);
 
             [-0.32, 0.32].forEach((x, side) => {
-                const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.055, 0.48, 10), skin);
-                arm.position.set(x, 0.42, -0.04);
+                const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.043, 0.055, 0.54, 10), skin);
+                arm.position.set(x, 0.43, -0.05);
                 arm.rotation.z = side === 0 ? -0.42 : 0.42;
                 racer.add(arm);
 
@@ -720,22 +744,35 @@
                 glove.position.set(side === 0 ? -0.42 : 0.42, 0.24, -0.13);
                 racer.add(glove);
 
-                const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.46, 10), suitDark);
-                leg.position.set(side === 0 ? -0.12 : 0.12, -0.16, -0.02);
-                leg.rotation.x = 0.18;
+                const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.075, 0.62, 10), suitDark);
+                leg.position.set(side === 0 ? -0.13 : 0.13, -0.2, -0.02);
+                leg.rotation.x = 0.26;
+                leg.rotation.z = side === 0 ? 0.08 : -0.08;
                 racer.add(leg);
 
-                const boot = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.08, 0.18), black);
-                boot.position.set(side === 0 ? -0.12 : 0.12, -0.4, -0.1);
+                const boot = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.1, 0.23), black);
+                boot.position.set(side === 0 ? -0.14 : 0.14, -0.52, -0.14);
                 racer.add(boot);
+
+                const heel = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.12, 0.05), black);
+                heel.position.set(side === 0 ? -0.18 : 0.1, -0.6, -0.03);
+                racer.add(heel);
             });
 
-            const chestStripe = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.55, 0.035), white);
-            chestStripe.position.set(0, 0.46, -0.22);
+            const chestStripe = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.68, 0.035), white);
+            chestStripe.position.set(0, 0.49, -0.235);
             racer.add(chestStripe);
 
-            racer.scale.set(1.05, 1.05, 1.05);
-            racer.position.set(0, 0.9, -0.24);
+            const zipper = new THREE.Mesh(new THREE.BoxGeometry(0.026, 0.64, 0.04), chrome);
+            zipper.position.set(0, 0.5, -0.26);
+            racer.add(zipper);
+
+            const hipAccent = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.06, 0.04), chrome);
+            hipAccent.position.set(0, 0.04, -0.2);
+            racer.add(hipAccent);
+
+            racer.scale.set(1.12, 1.12, 1.12);
+            racer.position.set(0, 0.96, -0.24);
             racer.rotation.x = -0.08;
             return racer;
         }

@@ -1579,7 +1579,12 @@
                     new THREE.BoxGeometry(2, 1, 2),
                     new THREE.MeshLambertMaterial({ color: 0xff4757 })
                 );
-                obstacle.userData = { type: 'normal' };
+                if (rand < 0.30) {
+                    obstacle.material.color.setHex(0x800080);
+                    obstacle.userData = { type: 'guided' };
+                } else {
+                    obstacle.userData = { type: 'normal' };
+                }
             } else if (rand < 0.14) {
                 obstacle = createItemMesh('firework');
             } else if (rand < 0.28) {
@@ -1593,7 +1598,7 @@
                 );
             }
 
-            if (!isOriginalMode && rand >= 0.40 && rand < 0.85) {
+            if (!isOriginalMode && rand >= 0.40 && rand < 0.75) {
                 obstacle.material.color.setHex(0x800080);
                 obstacle.userData = { type: 'guided' };
             } else if (!obstacle.userData.type) {

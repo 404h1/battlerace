@@ -6,31 +6,77 @@
     <title>BattleRace</title>
     <style>
         * { box-sizing: border-box; }
-        body { margin: 0; overflow: hidden; background-color: #87CEEB; font-family: 'Arial', sans-serif; touch-action: none; }
+        body {
+            margin: 0; overflow: hidden;
+            background: linear-gradient(#78d7ff 0%, #9be8ff 45%, #b8f5d6 100%);
+            font-family: 'Arial', sans-serif; touch-action: none;
+        }
 
         #ui-layer {
-            position: absolute; top: 10px; left: 10px;
-            color: white; text-shadow: 1px 1px 3px #000; z-index: 10;
+            position: absolute; top: 14px; left: 14px;
+            color: white; z-index: 10;
+            min-width: 170px; padding: 12px 14px;
+            background: linear-gradient(145deg, rgba(16,25,44,0.82), rgba(22,38,64,0.66));
+            border: 1px solid rgba(255,255,255,0.24);
+            border-radius: 8px;
+            box-shadow: 0 14px 36px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.18);
+            backdrop-filter: blur(10px);
         }
-        #ui-layer h2 { margin: 0 0 4px; font-size: 22px; }
-        #ui-stats { font-size: 13px; opacity: 0.9; line-height: 1.8; }
-        #status-msg { color: #ffd700; font-weight: bold; display: none; margin-top: 6px; font-size: 14px; }
+        #ui-layer h2 { margin: 0 0 8px; font-size: 24px; letter-spacing: 0; }
+        #ui-stats { display: grid; gap: 6px; font-size: 13px; line-height: 1.3; }
+        #ui-stats div {
+            display: flex; justify-content: space-between; gap: 14px;
+            padding: 5px 8px; border-radius: 6px;
+            background: rgba(255,255,255,0.12);
+        }
+        #status-msg {
+            color: #16110a; font-weight: bold; display: none; margin-top: 8px;
+            padding: 7px 9px; border-radius: 6px; font-size: 13px;
+            background: linear-gradient(90deg, #ffe66d, #ff9f43);
+            box-shadow: 0 0 18px rgba(255,214,64,0.45);
+            animation: warningPulse 0.55s ease-in-out infinite alternate;
+        }
 
         #touch-hint {
             display: none;
             position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-            color: rgba(255,255,255,0.6); font-size: 13px; z-index: 10;
+            color: rgba(255,255,255,0.9); font-size: 13px; z-index: 10;
+            padding: 9px 14px; border-radius: 999px;
+            background: rgba(11,18,32,0.42);
+            border: 1px solid rgba(255,255,255,0.18);
             text-shadow: 1px 1px 2px #000;
+            backdrop-filter: blur(8px);
         }
+
+        #item-toast {
+            position: absolute; top: 18px; left: 50%;
+            transform: translate(-50%, -18px) scale(0.96);
+            z-index: 15; min-width: 240px; max-width: min(360px, calc(100vw - 32px));
+            padding: 12px 16px; border-radius: 8px;
+            color: #fff; text-align: center;
+            background: linear-gradient(135deg, rgba(11,18,32,0.92), rgba(32,47,74,0.82));
+            border: 1px solid rgba(255,255,255,0.28);
+            box-shadow: 0 18px 42px rgba(0,0,0,0.32), 0 0 28px rgba(35,213,255,0.25);
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.18s ease, transform 0.18s ease;
+            backdrop-filter: blur(12px);
+        }
+        #item-toast.show { opacity: 1; transform: translate(-50%, 0) scale(1); }
+        #item-toast.firework { box-shadow: 0 18px 42px rgba(0,0,0,0.32), 0 0 34px rgba(255,209,102,0.55); }
+        #item-toast.confuse { box-shadow: 0 18px 42px rgba(0,0,0,0.32), 0 0 34px rgba(174,91,255,0.55); }
+        #item-toast-title { font-size: 17px; font-weight: 800; margin-bottom: 3px; }
+        #item-toast-desc { font-size: 13px; color: rgba(255,255,255,0.78); }
 
         #game-over {
             display: none;
             position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             text-align: center; color: white;
-            background: rgba(0,0,0,0.9);
-            padding: 28px 36px; border-radius: 14px; z-index: 20;
+            background: linear-gradient(145deg, rgba(13,20,34,0.96), rgba(31,40,62,0.94));
+            padding: 28px 36px; border-radius: 8px; z-index: 20;
             width: 340px; max-height: 92vh; overflow-y: auto;
+            border: 1px solid rgba(255,255,255,0.18);
+            box-shadow: 0 24px 70px rgba(0,0,0,0.42);
         }
         #game-over h1 { color: #ff4757; margin: 0 0 2px; font-size: 28px; }
         #score-display { font-size: 20px; margin: 4px 0 2px; }
@@ -74,6 +120,19 @@
             background-color: #2ed573; color: white;
             border: none; border-radius: 6px; margin-top: 14px; width: 100%;
         }
+
+        @keyframes warningPulse {
+            from { transform: translateX(-1px); filter: brightness(1); }
+            to { transform: translateX(1px); filter: brightness(1.16); }
+        }
+
+        @media (max-width: 560px) {
+            #ui-layer { top: 10px; left: 10px; min-width: 152px; padding: 10px; }
+            #ui-layer h2 { font-size: 20px; }
+            #game-over { width: calc(100vw - 28px); padding: 24px 20px; }
+            #name-row { flex-direction: column; }
+            #name-input { width: 100%; }
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
@@ -89,6 +148,11 @@
     </div>
 
     <div id="touch-hint">◀ 왼쪽 탭 &nbsp;|&nbsp; 오른쪽 탭 ▶</div>
+
+    <div id="item-toast">
+        <div id="item-toast-title"></div>
+        <div id="item-toast-desc"></div>
+    </div>
 
     <div id="game-over">
         <h1>충돌!</h1>
@@ -140,28 +204,93 @@
 
         // Three.js 씬
         const scene = new THREE.Scene();
-        scene.fog = new THREE.Fog(0x87CEEB, 10, 50);
+        scene.background = new THREE.Color(0x78d7ff);
+        scene.fog = new THREE.Fog(0x78d7ff, 16, 72);
 
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         camera.position.set(0, 5, 10);
         camera.lookAt(0, 0, 0);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
         renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x78d7ff, 1);
         document.body.appendChild(renderer.domElement);
 
-        scene.add(new THREE.DirectionalLight(0xffffff, 1).position.set(5, 10, 5) && new THREE.DirectionalLight(0xffffff, 1));
-        scene.add(new THREE.AmbientLight(0x404040));
+        scene.add(new THREE.HemisphereLight(0xffffff, 0x5e8d68, 0.85));
+        scene.add(new THREE.AmbientLight(0xffffff, 0.28));
         const dLight = new THREE.DirectionalLight(0xffffff, 1);
         dLight.position.set(5, 10, 5);
         scene.add(dLight);
 
         const plane = new THREE.Mesh(
             new THREE.PlaneGeometry(20, 1000),
-            new THREE.MeshLambertMaterial({ color: 0x555555 })
+            new THREE.MeshLambertMaterial({ color: 0x4b5158 })
         );
         plane.rotation.x = -Math.PI / 2;
         scene.add(plane);
+
+        const sceneryObjects = [];
+        const laneMarkers = [];
+
+        const grassMat = new THREE.MeshLambertMaterial({ color: 0x39c87a });
+        [-18, 18].forEach(x => {
+            const grass = new THREE.Mesh(new THREE.PlaneGeometry(16, 1000), grassMat);
+            grass.rotation.x = -Math.PI / 2;
+            grass.position.set(x, -0.01, 0);
+            scene.add(grass);
+        });
+
+        const curbMats = [
+            new THREE.MeshLambertMaterial({ color: 0xffffff }),
+            new THREE.MeshLambertMaterial({ color: 0xff4d6d })
+        ];
+        for (let z = -90; z < 40; z += 8) {
+            [-10.2, 10.2].forEach((x, sideIndex) => {
+                const curb = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.55, 0.1, 4),
+                    curbMats[(Math.floor((z + 90) / 8) + sideIndex) % 2]
+                );
+                curb.position.set(x, 0.04, z);
+                scene.add(curb);
+                sceneryObjects.push(curb);
+            });
+        }
+
+        for (let z = -90; z < 40; z += 10) {
+            [-2, 2].forEach(x => {
+                const marker = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.18, 0.035, 4.4),
+                    new THREE.MeshLambertMaterial({ color: 0xf7f2b7 })
+                );
+                marker.position.set(x, 0.035, z);
+                scene.add(marker);
+                laneMarkers.push(marker);
+            });
+        }
+
+        function makeSign(color, textColor, x, z, label) {
+            const sign = new THREE.Group();
+            const postMat = new THREE.MeshLambertMaterial({ color: 0x2d3542 });
+            const boardMat = new THREE.MeshLambertMaterial({ color });
+            const board = new THREE.Mesh(new THREE.BoxGeometry(2.5, 1.15, 0.16), boardMat);
+            board.position.y = 2.8;
+            const post = new THREE.Mesh(new THREE.BoxGeometry(0.16, 2.8, 0.16), postMat);
+            post.position.y = 1.4;
+            const stripe = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.16, 0.18), new THREE.MeshLambertMaterial({ color: textColor }));
+            stripe.position.y = 2.9;
+            sign.add(post, board, stripe);
+            sign.position.set(x, 0, z);
+            sign.rotation.y = x > 0 ? -0.45 : 0.45;
+            sign.userData.label = label;
+            scene.add(sign);
+            sceneryObjects.push(sign);
+        }
+
+        for (let z = -85; z < 30; z += 22) {
+            makeSign(0x23d5ff, 0xffffff, -13, z, 'boost');
+            makeSign(0xffd166, 0x222222, 13, z - 10, 'item');
+        }
 
         function buildCybertruck() {
             const g = new THREE.Group();
@@ -445,6 +574,131 @@
         let finalScore = 0;
         let scoreSubmitted = false;
         let sessionId = null;
+        let toastTimer = null;
+        const fireworks = [];
+        const itemInfo = {
+            firework: {
+                title: '폭죽 아이템!',
+                desc: '앞쪽 장애물을 폭죽으로 날려요',
+                className: 'firework',
+                color: 0xffd166
+            },
+            confuse: {
+                title: '반전 아이템!',
+                desc: '3초 동안 좌우 조작이 뒤집혀요',
+                className: 'confuse',
+                color: 0xae5bff
+            }
+        };
+
+        function showItemToast(type) {
+            const info = itemInfo[type];
+            const toast = document.getElementById('item-toast');
+            document.getElementById('item-toast-title').innerText = info.title;
+            document.getElementById('item-toast-desc').innerText = info.desc;
+            toast.className = `${info.className} show`;
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toast.className = info.className;
+            }, 1700);
+        }
+
+        function createItemMesh(type) {
+            const info = itemInfo[type];
+            const group = new THREE.Group();
+            const core = new THREE.Mesh(
+                new THREE.IcosahedronGeometry(0.58, 0),
+                new THREE.MeshLambertMaterial({ color: info.color, emissive: info.color, emissiveIntensity: 0.28 })
+            );
+            const ring = new THREE.Mesh(
+                new THREE.TorusGeometry(0.78, 0.08, 10, 28),
+                new THREE.MeshLambertMaterial({ color: 0xffffff, emissive: info.color, emissiveIntensity: 0.35 })
+            );
+            const halo = new THREE.Mesh(
+                new THREE.TorusGeometry(1.02, 0.045, 8, 28),
+                new THREE.MeshLambertMaterial({ color: info.color, transparent: true, opacity: 0.78 })
+            );
+            ring.rotation.x = Math.PI / 2;
+            halo.rotation.y = Math.PI / 2;
+            group.add(core, ring, halo);
+            group.userData = { type, isItem: true };
+            return group;
+        }
+
+        function createFireworkBurst(x, y, z) {
+            const palette = [0xffd166, 0xef476f, 0x06d6a0, 0x23d5ff, 0xffffff];
+            for (let i = 0; i < 34; i++) {
+                const color = palette[i % palette.length];
+                const particle = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.075, 8, 8),
+                    new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 1 })
+                );
+                const angle = Math.random() * Math.PI * 2;
+                const lift = Math.random() * Math.PI;
+                const force = 0.08 + Math.random() * 0.12;
+                particle.position.set(x, y, z);
+                particle.userData = {
+                    velocity: new THREE.Vector3(
+                        Math.cos(angle) * Math.sin(lift) * force,
+                        Math.cos(lift) * force + 0.09,
+                        Math.sin(angle) * Math.sin(lift) * force
+                    ),
+                    life: 1
+                };
+                scene.add(particle);
+                fireworks.push(particle);
+            }
+        }
+
+        function updateFireworks() {
+            for (let i = fireworks.length - 1; i >= 0; i--) {
+                const p = fireworks[i];
+                p.position.add(p.userData.velocity);
+                p.userData.velocity.y -= 0.006;
+                p.userData.life -= 0.018;
+                p.material.opacity = Math.max(0, p.userData.life);
+                p.scale.multiplyScalar(0.992);
+                if (p.userData.life <= 0) {
+                    scene.remove(p);
+                    fireworks.splice(i, 1);
+                }
+            }
+        }
+
+        function applyItemEffect(type, position) {
+            showItemToast(type);
+            createFireworkBurst(position.x, 2.2, position.z + 1.2);
+
+            if (type === 'firework') {
+                createFireworkBurst(position.x - 1.1, 2.8, position.z);
+                createFireworkBurst(position.x + 1.1, 2.8, position.z);
+                for (let i = obstacles.length - 1; i >= 0; i--) {
+                    const obs = obstacles[i];
+                    if (!obs.userData.isItem && obs.position.z < 8 && obs.position.z > -42) {
+                        createFireworkBurst(obs.position.x, 1.6, obs.position.z);
+                        scene.remove(obs);
+                        obstacles.splice(i, 1);
+                    }
+                }
+                return;
+            }
+
+            if (type === 'confuse') {
+                isConfused = true;
+                document.getElementById('status-msg').style.display = 'block';
+                setTimeout(() => {
+                    isConfused = false;
+                    document.getElementById('status-msg').style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        function updateScenery() {
+            [...sceneryObjects, ...laneMarkers].forEach(obj => {
+                obj.position.z += speed * 0.92;
+                if (obj.position.z > 24) obj.position.z -= 132;
+            });
+        }
 
         // 게임 시작 시 세션 발급
         fetch('/api/session', { method: 'POST' })
@@ -477,25 +731,30 @@
 
         function createObstacle() {
             if (isGameOver) return;
-            const obstacle = new THREE.Mesh(
-                new THREE.BoxGeometry(2, 1, 2),
-                new THREE.MeshLambertMaterial({ color: 0xff4757 })
-            );
+            let obstacle;
             const rand = Math.random();
-            if (rand < 0.15) {
-                obstacle.material.color.setHex(0xffd700);
-                obstacle.userData = { type: 'coin' };
-            } else if (rand < 0.35) {
+            if (rand < 0.14) {
+                obstacle = createItemMesh('firework');
+            } else if (rand < 0.28) {
+                obstacle = createItemMesh('confuse');
+            } else {
+                obstacle = new THREE.Mesh(
+                    new THREE.BoxGeometry(2, 1, 2),
+                    new THREE.MeshLambertMaterial({ color: 0xff4757 })
+                );
+            }
+
+            if (rand >= 0.28 && rand < 0.46) {
                 obstacle.material.color.setHex(0x800080);
                 obstacle.userData = { type: 'guided' };
-            } else {
+            } else if (!obstacle.userData.type) {
                 obstacle.userData = { type: 'normal' };
             }
             const lanes = [-4, 0, 4];
-            obstacle.position.set(lanes[Math.floor(Math.random() * lanes.length)], 0.5, -60);
+            obstacle.position.set(lanes[Math.floor(Math.random() * lanes.length)], obstacle.userData.isItem ? 1.15 : 0.5, -60);
             scene.add(obstacle);
             obstacles.push(obstacle);
-            setTimeout(createObstacle, Math.random() * 800 + 400);
+            setTimeout(createObstacle, Math.random() * 760 + 380);
         }
 
         createObstacle();
@@ -518,6 +777,8 @@
             document.getElementById('score').innerText = displayScore;
             document.getElementById('ui-speed').innerText = Math.min(speedLevel, 99);
             speed += 0.0001;
+            updateScenery();
+            updateFireworks();
 
             for (let i = 0; i < obstacles.length; i++) {
                 const obs = obstacles[i];
@@ -527,15 +788,17 @@
                     obs.position.x += (car.position.x - obs.position.x) * 0.015;
                 }
 
+                if (obs.userData.isItem) {
+                    obs.rotation.y += 0.075;
+                    obs.rotation.x += 0.025;
+                    obs.position.y = 1.15 + Math.sin(score * 0.05 + i) * 0.18;
+                }
+
                 if (Math.abs(car.position.x - obs.position.x) < 2 && Math.abs(car.position.z - obs.position.z) < 3) {
-                    if (obs.userData.type === 'coin') {
+                    if (obs.userData.isItem) {
+                        const hitPosition = obs.position.clone();
                         scene.remove(obs); obstacles.splice(i, 1); i--;
-                        isConfused = true;
-                        document.getElementById('status-msg').style.display = 'block';
-                        setTimeout(() => {
-                            isConfused = false;
-                            document.getElementById('status-msg').style.display = 'none';
-                        }, 3000);
+                        applyItemEffect(obs.userData.type, hitPosition);
                         continue;
                     } else {
                         triggerGameOver();

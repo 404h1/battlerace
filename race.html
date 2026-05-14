@@ -360,6 +360,7 @@
         scene.add(plane);
 
         const sceneryObjects = [];
+        const terrainObjects = [];
         const laneMarkers = [];
 
         const grassMat = new THREE.MeshLambertMaterial({ color: 0x39c87a });
@@ -368,6 +369,7 @@
             grass.rotation.x = -Math.PI / 2;
             grass.position.set(x, -0.01, 0);
             scene.add(grass);
+            terrainObjects.push(grass);
         });
 
         const curbMats = [
@@ -612,6 +614,22 @@
 
         applyMapTheme(selectedTheme);
 
+        function applyOriginalModeLook() {
+            scene.background = new THREE.Color(0x050607);
+            scene.fog = new THREE.Fog(0x050607, 8, 34);
+            renderer.setClearColor(0x050607, 1);
+            plane.material.color.setHex(0x2f2f2f);
+            grassMat.color.setHex(0x060706);
+            sceneryObjects.forEach(obj => { obj.visible = false; });
+            terrainObjects.forEach(obj => { obj.visible = false; });
+            laneMarkers.forEach(obj => {
+                obj.material.color.setHex(0xd4d4d8);
+                obj.material.emissive = new THREE.Color(0x111111);
+            });
+        }
+
+        if (isOriginalMode) applyOriginalModeLook();
+
         function buildCyberPilot() {
             const pilot = new THREE.Group();
             const suit = new THREE.MeshLambertMaterial({ color: 0x121820 });
@@ -743,19 +761,36 @@
                 const glove = new THREE.Mesh(new THREE.SphereGeometry(0.065, 8, 8), white);
                 glove.position.set(side === 0 ? -0.42 : 0.42, 0.24, -0.13);
                 racer.add(glove);
+            });
 
-                const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.075, 0.62, 10), suitDark);
-                leg.position.set(side === 0 ? -0.13 : 0.13, -0.2, -0.02);
-                leg.rotation.x = 0.26;
-                leg.rotation.z = side === 0 ? 0.08 : -0.08;
-                racer.add(leg);
+            const leftThigh = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.08, 0.52, 10), suitDark);
+            leftThigh.position.set(-0.12, -0.13, -0.03);
+            leftThigh.rotation.set(1.18, 0, -0.92);
+            racer.add(leftThigh);
 
-                const boot = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.1, 0.23), black);
-                boot.position.set(side === 0 ? -0.14 : 0.14, -0.52, -0.14);
+            const leftCalf = new THREE.Mesh(new THREE.CylinderGeometry(0.052, 0.065, 0.5, 10), suitDark);
+            leftCalf.position.set(0.18, -0.23, -0.12);
+            leftCalf.rotation.set(1.1, 0, 0.78);
+            racer.add(leftCalf);
+
+            const rightThigh = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.08, 0.5, 10), suitDark);
+            rightThigh.position.set(0.13, -0.15, -0.01);
+            rightThigh.rotation.set(1.1, 0, 0.84);
+            racer.add(rightThigh);
+
+            const rightCalf = new THREE.Mesh(new THREE.CylinderGeometry(0.052, 0.065, 0.5, 10), suitDark);
+            rightCalf.position.set(-0.18, -0.26, -0.13);
+            rightCalf.rotation.set(1.14, 0, -0.78);
+            racer.add(rightCalf);
+
+            [[0.43, -0.34, -0.18, 0.28], [-0.43, -0.36, -0.18, -0.28]].forEach(([x, y, z, rz]) => {
+                const boot = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.09, 0.18), black);
+                boot.position.set(x, y, z);
+                boot.rotation.z = rz;
                 racer.add(boot);
 
-                const heel = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.12, 0.05), black);
-                heel.position.set(side === 0 ? -0.18 : 0.1, -0.6, -0.03);
+                const heel = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.12, 0.05), black);
+                heel.position.set(x - Math.sign(x) * 0.07, y - 0.08, z + 0.08);
                 racer.add(heel);
             });
 
@@ -1522,15 +1557,19 @@
             let moveZ = 0;
             if (keys.ArrowLeft || keys.a || touch.left) moveX -= 1;
             if (keys.ArrowRight || keys.d || touch.right) moveX += 1;
-            if (keys.ArrowUp || keys.w || touch.up) moveZ -= 1;
-            if (keys.ArrowDown || keys.s || touch.down) moveZ += 1;
+            if (!isOriginalMode) {
+                if (keys.ArrowUp || keys.w || touch.up) moveZ -= 1;
+                if (keys.ArrowDown || keys.s || touch.down) moveZ += 1;
+            }
             if (isConfused) {
                 moveX *= -1;
                 moveZ *= -1;
             }
 
             car.position.x = Math.max(carBounds.minX, Math.min(carBounds.maxX, car.position.x + moveX * lateralSpeed));
-            car.position.z = Math.max(carBounds.minZ, Math.min(carBounds.maxZ, car.position.z + moveZ * forwardSpeed));
+            car.position.z = isOriginalMode
+                ? 0
+                : Math.max(carBounds.minZ, Math.min(carBounds.maxZ, car.position.z + moveZ * forwardSpeed));
             car.rotation.z = -moveX * 0.08;
             car.rotation.x = moveZ * 0.04;
 

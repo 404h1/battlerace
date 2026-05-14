@@ -21,7 +21,7 @@ Use the in-game mode selector, or open with a URL:
 /?mode=original
 ```
 
-Original mode keeps the classic rules: red obstacles only, no items, no jumps, no guided purple boxes.
+Original mode keeps the classic rules: left/right movement only, red obstacles only, no items, no jumps, no guided purple boxes, and a dark minimal road scene.
 
 ## Game Over Message
 

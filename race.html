@@ -811,42 +811,45 @@
                 });
             });
 
-            const leftThigh = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.08, 0.52, 10), suitDark);
-            leftThigh.position.set(-0.12, -0.13, -0.03);
-            leftThigh.rotation.set(1.18, 0, -0.92);
-            racer.add(leftThigh);
+            const skirt = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.16, 0.38), suitDark);
+            skirt.position.set(0, -0.02, -0.04);
+            skirt.rotation.x = 0.08;
+            racer.add(skirt);
 
-            const leftKnee = new THREE.Mesh(new THREE.SphereGeometry(0.072, 8, 8), suitDark);
-            leftKnee.position.set(0.09, -0.21, -0.12);
-            racer.add(leftKnee);
+            const addLimb = (from, to, radius, material) => {
+                const start = new THREE.Vector3(from[0], from[1], from[2]);
+                const end = new THREE.Vector3(to[0], to[1], to[2]);
+                const mid = start.clone().add(end).multiplyScalar(0.5);
+                const direction = end.clone().sub(start);
+                const length = direction.length();
+                const limb = new THREE.Mesh(new THREE.CylinderGeometry(radius * 0.82, radius, length, 14), material);
+                limb.position.copy(mid);
+                limb.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.normalize());
+                racer.add(limb);
+                return limb;
+            };
 
-            const leftCalf = new THREE.Mesh(new THREE.CylinderGeometry(0.052, 0.065, 0.5, 10), suitDark);
-            leftCalf.position.set(0.18, -0.23, -0.12);
-            leftCalf.rotation.set(1.1, 0, 0.78);
-            racer.add(leftCalf);
+            // Crossed seated legs: upper leg lays across the lap, lower leg tucks underneath.
+            addLimb([-0.23, -0.06, -0.06], [0.24, -0.14, -0.16], 0.09, skin);
+            addLimb([0.24, -0.14, -0.16], [0.52, -0.36, -0.2], 0.066, skin);
+            addLimb([0.18, -0.1, 0.02], [-0.2, -0.25, -0.13], 0.083, skin);
+            addLimb([-0.2, -0.25, -0.13], [-0.48, -0.42, -0.2], 0.062, skin);
 
-            const rightThigh = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.08, 0.5, 10), suitDark);
-            rightThigh.position.set(0.13, -0.15, -0.01);
-            rightThigh.rotation.set(1.1, 0, 0.84);
-            racer.add(rightThigh);
+            [[0.24, -0.14, -0.16], [-0.2, -0.25, -0.13]].forEach(([x, y, z]) => {
+                const knee = new THREE.Mesh(new THREE.SphereGeometry(0.075, 10, 8), skin);
+                knee.scale.set(1.08, 0.86, 0.92);
+                knee.position.set(x, y, z);
+                racer.add(knee);
+            });
 
-            const rightKnee = new THREE.Mesh(new THREE.SphereGeometry(0.072, 8, 8), suitDark);
-            rightKnee.position.set(-0.09, -0.23, -0.12);
-            racer.add(rightKnee);
-
-            const rightCalf = new THREE.Mesh(new THREE.CylinderGeometry(0.052, 0.065, 0.5, 10), suitDark);
-            rightCalf.position.set(-0.18, -0.26, -0.13);
-            rightCalf.rotation.set(1.14, 0, -0.78);
-            racer.add(rightCalf);
-
-            [[0.43, -0.34, -0.18, 0.28], [-0.43, -0.36, -0.18, -0.28]].forEach(([x, y, z, rz]) => {
+            [[0.54, -0.38, -0.22, 0.22], [-0.5, -0.43, -0.22, -0.22]].forEach(([x, y, z, rz]) => {
                 const boot = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.09, 0.18), black);
                 boot.position.set(x, y, z);
                 boot.rotation.z = rz;
                 racer.add(boot);
 
                 const heel = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.12, 0.05), black);
-                heel.position.set(x - Math.sign(x) * 0.07, y - 0.08, z + 0.08);
+                heel.position.set(x - Math.sign(x) * 0.07, y - 0.08, z + 0.07);
                 racer.add(heel);
             });
 

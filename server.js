@@ -32,18 +32,35 @@ app.get('/api/scores', async (req, res) => {
   res.json(data);
 });
 
-// 세션 관리 (시작 시간 기록)
-const sessions = new Map();
+// HMAC 서명 기반 세션 (서버리스 환경에서도 동작)
+const crypto = require('crypto');
+const SESSION_SECRET = process.env.SESSION_SECRET || 'fallback-secret-change-me';
+
+function createToken(timestamp) {
+  const hmac = crypto.createHmac('sha256', SESSION_SECRET);
+  hmac.update(String(timestamp));
+  return hmac.digest('hex') + ':' + timestamp;
+}
+
+function verifyToken(token) {
+  if (!token || typeof token !== 'string') return null;
+  const parts = token.split(':');
+  if (parts.length !== 2) return null;
+  const [hash, tsStr] = parts;
+  const ts = parseInt(tsStr, 10);
+  if (isNaN(ts)) return null;
+  const expected = crypto.createHmac('sha256', SESSION_SECRET);
+  expected.update(String(ts));
+  const expectedHash = expected.digest('hex');
+  try {
+    if (!crypto.timingSafeEqual(Buffer.from(hash, 'hex'), Buffer.from(expectedHash, 'hex'))) return null;
+  } catch { return null; }
+  return ts;
+}
 
 app.post('/api/session', (req, res) => {
-  const id = Math.random().toString(36).slice(2);
-  sessions.set(id, Date.now());
-  // 오래된 세션 정리
-  if (sessions.size > 10000) {
-    const cutoff = Date.now() - 1000 * 60 * 60;
-    for (const [k, v] of sessions) { if (v < cutoff) sessions.delete(k); }
-  }
-  res.json({ sessionId: id });
+  const token = createToken(Date.now());
+  res.json({ sessionId: token });
 });
 
 // 점수 저장 (개인 최고 점수만 업데이트)
@@ -55,12 +72,11 @@ app.post('/api/scores', async (req, res) => {
   if (typeof score !== 'number' || score < 0 || score > 100000)
     return res.status(400).json({ error: '유효하지 않은 점수입니다.' });
 
-  // 시간 기반 검증: 60fps 기준 초당 최대 6점
-  const startTime = sessions.get(sessionId);
+  // HMAC 서명 검증 + 시간 기반 점수 검증
+  const startTime = verifyToken(sessionId);
   if (!startTime) return res.status(400).json({ error: '유효하지 않은 세션입니다.' });
   const elapsedSec = (Date.now() - startTime) / 1000;
-  const maxPossible = Math.floor(elapsedSec * 6 * 1.15); // 15% 여유
-  sessions.delete(sessionId);
+  const maxPossible = Math.floor(elapsedSec * 6 * 1.15);
   if (score > maxPossible) return res.status(400).json({ error: '유효하지 않은 점수입니다.' });
 
   const cleanName = name.trim().slice(0, 20);
